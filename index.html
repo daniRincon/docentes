@@ -1,0 +1,1943 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seguimiento de Sesiones Docentes — Escuela de Robótica del Chocó</title>
+<meta name="description" content="Seguimiento de las sesiones de profundización con docentes destacados de Istmina y Belén de Bajirá (Chocó) — Robótica Sin Fronteras.">
+<style>
+/* =====================================================================
+   PALETA (tomada del logo de la Escuela de Robótica del Chocó)
+   ===================================================================== */
+:root {
+  --azul: #2b3990;        /* azul del logo: títulos y navegación */
+  --azul-suave: #eceefa;
+  --naranja: #ec6a0e;     /* naranja del robot: acción principal */
+  --naranja-hover: #d55d08;
+  --amarillo: #f7b21b;
+  --verde: #2fa84f;
+  --rosa: #f4a3a8;
+
+  --fondo: #f6f7fb;
+  --superficie: #ffffff;
+  --texto: #1e2340;
+  --texto-suave: #6b7090;
+  --borde: #e7e9f2;
+
+  --ok-texto: #1e7a3c;   --ok-fondo: #e6f6ea;
+  --pend-texto: #8f5400; --pend-fondo: #fff3d9;
+  --sin-texto: #6b7090;  --sin-fondo: #f0f1f6;
+  --peligro: #c62f2f;    --peligro-fondo: #fdecec;
+
+  --radio: 14px;
+  --sombra: 0 1px 2px rgba(30, 35, 64, .04), 0 4px 16px rgba(30, 35, 64, .05);
+  --fuente: "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; font-family: var(--fuente); font-size: 15px; line-height: 1.5; color: var(--texto); background: var(--fondo); }
+button, input, select, textarea { font: inherit; color: inherit; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 16px; }
+:focus-visible { outline: 3px solid rgba(43, 57, 144, .35); outline-offset: 2px; }
+
+/* =====================================================================
+   ENCABEZADO
+   ===================================================================== */
+.header { background: var(--superficie); border-bottom: 1px solid var(--borde); }
+.franja { height: 5px; background: linear-gradient(90deg, var(--azul) 0 25%, var(--naranja) 25% 50%, var(--amarillo) 50% 75%, var(--verde) 75% 100%); }
+.header-inner { display: flex; align-items: center; gap: 24px; padding-top: 16px; padding-bottom: 16px; }
+.logo { height: 64px; width: auto; display: block; flex: 0 0 auto; }
+.header-texto { flex: 1 1 auto; min-width: 0; padding-left: 24px; border-left: 1px solid var(--borde); }
+.header-texto h1 { margin: 0; font-size: 21px; line-height: 1.25; color: var(--azul); font-weight: 800; }
+.header-texto p { margin: 3px 0 0; color: var(--texto-suave); font-size: 14px; }
+
+/* Indicador de conexión con la base de datos */
+.conexion {
+  flex: 0 0 auto; display: inline-flex; align-items: center; gap: 7px;
+  border: 0; background: none; cursor: pointer; font-size: 13px; color: var(--texto-suave);
+  padding: 6px 10px; border-radius: 999px; white-space: nowrap;
+}
+.conexion:hover { background: var(--fondo); }
+.conexion i { width: 8px; height: 8px; border-radius: 50%; background: var(--amarillo); }
+.conexion[data-estado="conectado"] i { background: var(--verde); }
+.conexion[data-estado="sin-conexion"] { color: var(--peligro); }
+.conexion[data-estado="sin-conexion"] i { background: var(--peligro); }
+.conexion[data-estado="conectando"] i { animation: latido 1s ease-in-out infinite; }
+@keyframes latido { 50% { opacity: .3; } }
+.btn:disabled { opacity: .6; cursor: progress; }
+
+/* Menú de datos */
+.menu { position: relative; flex: 0 0 auto; }
+.menu > summary { list-style: none; }
+.menu > summary::-webkit-details-marker { display: none; }
+.menu-lista {
+  position: absolute; right: 0; top: calc(100% + 6px); z-index: 30; min-width: 250px;
+  background: var(--superficie); border: 1px solid var(--borde); border-radius: 12px; box-shadow: 0 12px 32px rgba(30,35,64,.14);
+  padding: 6px;
+}
+.menu-lista button {
+  display: flex; width: 100%; gap: 10px; align-items: center; text-align: left;
+  border: 0; background: none; padding: 9px 10px; border-radius: 8px; cursor: pointer; font-size: 14px;
+}
+.menu-lista button:hover { background: var(--fondo); }
+.menu-lista small { display: block; color: var(--texto-suave); font-size: 12px; }
+.menu-lista hr { border: 0; border-top: 1px solid var(--borde); margin: 4px 0; }
+
+/* =====================================================================
+   RESUMEN GENERAL
+   ===================================================================== */
+.resumen { margin-top: 22px; }
+.resumen-titulo { font-size: 13px; font-weight: 700; color: var(--texto-suave); text-transform: uppercase; letter-spacing: .05em; margin: 0 0 10px; }
+.kpis {
+  display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
+  background: var(--superficie); border-radius: var(--radio); box-shadow: var(--sombra);
+}
+.kpi { padding: 16px 20px; border-left: 1px solid var(--borde); min-width: 0; }
+.kpi:first-child { border-left: 0; }
+.kpi-label { font-size: 13px; color: var(--texto-suave); }
+.kpi-valor { font-size: 28px; font-weight: 800; color: var(--azul); line-height: 1.2; margin-top: 2px; font-variant-numeric: tabular-nums; }
+.kpi-valor.ok { color: var(--ok-texto); }
+.kpi-valor.pend { color: var(--pend-texto); }
+.kpi-sub { font-size: 12.5px; color: var(--texto-suave); margin-top: 2px; }
+.kpi .barra { margin-top: 8px; }
+.nota-local { display: flex; gap: 6px; align-items: center; font-size: 12.5px; color: var(--texto-suave); margin: 10px 2px 0; }
+
+/* =====================================================================
+   PESTAÑAS DE MUNICIPIO
+   ===================================================================== */
+.tabs { display: flex; gap: 6px; border-bottom: 1px solid var(--borde); margin: 28px 0 20px; }
+.tab {
+  border: 0; background: none; cursor: pointer; padding: 10px 16px 12px; margin-bottom: -1px;
+  font-size: 16px; font-weight: 700; color: var(--texto-suave); border-bottom: 3px solid transparent;
+  display: inline-flex; align-items: center; gap: 8px;
+}
+.tab:hover { color: var(--azul); }
+.tab .num { font-size: 12px; font-weight: 700; padding: 1px 8px; border-radius: 999px; background: var(--sin-fondo); color: var(--texto-suave); }
+.tab[aria-selected="true"] { color: var(--azul); border-bottom-color: var(--naranja); }
+.tab[aria-selected="true"] .num { background: var(--azul-suave); color: var(--azul); }
+
+/* =====================================================================
+   BOTONES
+   ===================================================================== */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  border: 1px solid var(--borde); background: var(--superficie); color: var(--texto);
+  padding: 9px 16px; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 14px;
+  transition: background .15s, border-color .15s, color .15s; white-space: nowrap;
+}
+.btn:hover { background: var(--fondo); }
+.btn-principal { background: var(--naranja); border-color: var(--naranja); color: #fff; }
+.btn-principal:hover { background: var(--naranja-hover); border-color: var(--naranja-hover); }
+.btn-peligro { background: var(--peligro); border-color: var(--peligro); color: #fff; }
+.btn-peligro:hover { background: #a82424; }
+.btn-sm { padding: 6px 10px; font-size: 13px; border-radius: 8px; }
+.btn-icono { padding: 6px; width: 32px; height: 32px; border-color: transparent; background: transparent; color: var(--texto-suave); }
+.btn-icono:hover { background: var(--fondo); color: var(--azul); }
+.btn-icono.borrar:hover { background: var(--peligro-fondo); color: var(--peligro); }
+.btn-texto { border: 0; background: none; color: var(--naranja); padding: 6px 8px; font-size: 13.5px; }
+.btn-texto:hover { background: #fff1e6; }
+
+/* =====================================================================
+   DISTRIBUCIÓN Y TARJETAS
+   ===================================================================== */
+.panel[hidden] { display: none; }
+.columnas { display: block; }
+.tarjeta { background: var(--superficie); border-radius: var(--radio); box-shadow: var(--sombra); padding: 20px; min-width: 0; }
+.tarjeta + .tarjeta { margin-top: 20px; }
+.tarjeta-cabeza { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+.tarjeta-cabeza h2 { margin: 0; font-size: 17px; color: var(--azul); font-weight: 800; }
+.tarjeta-cabeza .contador { font-size: 13px; color: var(--texto-suave); }
+.cabeza-acciones { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+/* Modal del formulario de registro (queda por debajo del modal de confirmación) */
+body.con-modal { overflow: hidden; }
+.modal-fondo.registro { z-index: 40; align-items: start; overflow-y: auto; }
+.modal.formulario { width: min(500px, 100%); padding: 0; margin: 24px 0; }
+.formulario-cabeza {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 18px 22px; border-bottom: 1px solid var(--borde);
+}
+.formulario-cabeza h2 { margin: 0; font-size: 18px; color: var(--azul); font-weight: 800; }
+.formulario-sub { font-size: 13px; color: var(--texto-suave); }
+.formulario-cuerpo { padding: 18px 22px 4px; }
+.formulario-pie { display: flex; justify-content: flex-end; gap: 8px; padding: 14px 22px 18px; border-top: 1px solid var(--borde); }
+.formulario.editando .formulario-cabeza { border-top: 4px solid var(--naranja); border-radius: 16px 16px 0 0; }
+
+/* =====================================================================
+   FORMULARIO
+   ===================================================================== */
+.campo { margin-bottom: 14px; }
+.campo label, .campo .etiqueta { display: block; font-weight: 600; font-size: 13.5px; margin-bottom: 5px; }
+.campo .ayuda { color: var(--texto-suave); font-size: 12px; margin-top: 4px; }
+.input {
+  width: 100%; min-height: 42px; border: 1px solid #d6d9e6; background: #fff; border-radius: 10px; padding: 9px 12px;
+  transition: border-color .15s;
+}
+.input:focus { border-color: var(--azul); outline: none; box-shadow: 0 0 0 3px rgba(43,57,144,.12); }
+textarea.input { min-height: 70px; resize: vertical; }
+.input.invalido { border-color: var(--peligro); }
+.duracion { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.con-unidad { position: relative; }
+.con-unidad .input { padding-right: 46px; }
+.con-unidad span { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--texto-suave); font-size: 13px; pointer-events: none; }
+.error { color: var(--peligro); font-size: 12.5px; margin-top: 4px; }
+.error:empty { display: none; }
+.aviso-edicion {
+  display: none; align-items: center; justify-content: space-between; gap: 8px;
+  background: #fff1e6; color: #9a4300; border-radius: 10px; padding: 8px 12px; font-size: 13px; font-weight: 600; margin-bottom: 14px;
+}
+.editando .aviso-edicion { display: flex; }
+
+/* Cálculo previo al guardar */
+.calculo { background: var(--fondo); border-radius: 12px; padding: 12px 14px; margin-bottom: 14px; font-size: 13.5px; }
+.calculo-fila { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 3px 0; }
+.calculo-fila span:first-child { color: var(--texto-suave); }
+.calculo-fila b { font-variant-numeric: tabular-nums; }
+.calculo-vacio { color: var(--texto-suave); }
+
+/* =====================================================================
+   ESTADOS Y PROGRESO
+   ===================================================================== */
+.estado { display: inline-block; font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px; white-space: nowrap; }
+.estado-ok { background: var(--ok-fondo); color: var(--ok-texto); letter-spacing: .03em; }
+.estado-pend { background: var(--pend-fondo); color: var(--pend-texto); }
+.estado-sin { background: var(--sin-fondo); color: var(--sin-texto); }
+
+.barra { height: 6px; background: #eceef5; border-radius: 999px; overflow: hidden; }
+.barra > i { display: block; height: 100%; border-radius: inherit; background: var(--amarillo); transition: width .3s ease; }
+.barra.completa > i { background: var(--verde); }
+.avance { min-width: 150px; }
+.avance-texto { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; margin-bottom: 5px; }
+.avance-texto b { font-variant-numeric: tabular-nums; }
+.avance-texto span { color: var(--texto-suave); font-variant-numeric: tabular-nums; }
+
+/* =====================================================================
+   FILTROS Y TABLAS
+   ===================================================================== */
+.filtros { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; align-items: center; }
+.buscador { position: relative; flex: 1 1 220px; }
+.buscador .input { padding-left: 36px; }
+.buscador svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--texto-suave); pointer-events: none; }
+.segmentos { display: inline-flex; flex-wrap: wrap; gap: 4px; background: var(--fondo); padding: 4px; border-radius: 10px; }
+.segmento { border: 0; background: none; padding: 6px 12px; border-radius: 7px; font-size: 13px; font-weight: 600; color: var(--texto-suave); cursor: pointer; }
+.segmento[aria-pressed="true"] { background: var(--superficie); color: var(--azul); box-shadow: 0 1px 2px rgba(30,35,64,.1); }
+
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+thead th { text-align: left; font-size: 12.5px; font-weight: 600; color: var(--texto-suave); padding: 8px 10px; border-bottom: 1px solid var(--borde); }
+tbody td { padding: 12px 10px; border-bottom: 1px solid var(--borde); vertical-align: middle; }
+tbody tr:last-child td { border-bottom: 0; }
+tbody tr:hover td { background: #fafbfd; }
+tr.activo td { background: var(--azul-suave) !important; }
+.der { text-align: right; }
+.nowrap { white-space: nowrap; }
+.nombre { font-weight: 600; }
+.nombre-extra { font-size: 12px; color: var(--pend-texto); }
+.obs { font-size: 12.5px; color: var(--texto-suave); margin-top: 2px; }
+.dur { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.dur-req { color: var(--texto-suave); font-size: 12.5px; }
+.acciones { display: flex; gap: 2px; justify-content: flex-end; align-items: center; }
+
+.vacio { text-align: center; padding: 36px 16px; color: var(--texto-suave); }
+.vacio strong { display: block; color: var(--texto); font-size: 15px; margin-bottom: 2px; }
+
+/* Sesiones del docente seleccionado */
+.sesiones { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; margin-bottom: 16px; }
+.sesion { border: 1px solid var(--borde); border-radius: 12px; padding: 12px 14px; }
+.sesion-cabeza { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px; }
+.sesion-cabeza b { font-size: 14px; }
+.leyenda { font-size: 12.5px; color: var(--texto-suave); margin: 12px 0 0; }
+
+footer { text-align: center; color: var(--texto-suave); font-size: 12.5px; padding: 32px 16px; }
+
+/* =====================================================================
+   NOTIFICACIONES Y MODAL
+   ===================================================================== */
+.toasts { position: fixed; right: 16px; bottom: 16px; display: flex; flex-direction: column; gap: 8px; z-index: 60; max-width: calc(100vw - 32px); }
+.toast {
+  background: var(--superficie); color: var(--texto); padding: 12px 16px; border-radius: 12px; font-size: 14px; max-width: 380px;
+  box-shadow: 0 10px 30px rgba(30,35,64,.18); border-left: 5px solid var(--azul); animation: entrar .2s ease-out;
+}
+.toast.exito { border-left-color: var(--verde); }
+.toast.error { border-left-color: var(--peligro); }
+.toast.advertencia { border-left-color: var(--amarillo); }
+.toast.ocultar { opacity: 0; transform: translateY(6px); transition: all .25s; }
+@keyframes entrar { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+.modal-fondo { position: fixed; inset: 0; background: rgba(30,35,64,.45); z-index: 50; display: grid; place-items: center; padding: 16px; }
+.modal-fondo[hidden] { display: none; }
+.modal { background: var(--superficie); border-radius: 16px; width: min(460px, 100%); padding: 22px; box-shadow: 0 20px 60px rgba(0,0,0,.25); animation: entrar .18s ease-out; }
+.modal h3 { margin: 0 0 8px; font-size: 18px; color: var(--azul); }
+.modal p { margin: 0 0 18px; color: var(--texto-suave); white-space: pre-line; }
+.modal-acciones { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+
+/* =====================================================================
+   PANTALLAS MEDIANAS Y PEQUEÑAS
+   ===================================================================== */
+@media (max-width: 1000px) {
+  .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .kpi:nth-child(4) { border-left: 0; }
+  .kpi:nth-child(n+4) { border-top: 1px solid var(--borde); }
+}
+@media (max-width: 700px) {
+  .header-inner { flex-wrap: wrap; gap: 12px; }
+  .logo { height: 52px; }
+  .header-texto { order: 3; flex-basis: 100%; padding-left: 0; border-left: 0; }
+  .header-texto h1 { font-size: 18px; }
+  .conexion { margin-left: auto; }
+}
+@media (max-width: 640px) {
+  body { font-size: 14.5px; }
+  .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kpi { padding: 14px 16px; border-left: 0; border-top: 1px solid var(--borde); }
+  .kpi:nth-child(2n) { border-left: 1px solid var(--borde); }
+  .kpi:nth-child(-n+2) { border-top: 0; }
+  .kpi:last-child { grid-column: 1 / -1; border-left: 0; }
+  .kpi-valor { font-size: 24px; }
+  .tab { flex: 1 1 0; justify-content: center; padding: 10px 6px 12px; font-size: 15px; }
+  .tarjeta { padding: 16px; }
+  .modal-fondo.registro { padding: 8px; }
+  .modal.formulario { margin: 0; }
+  .formulario-cabeza, .formulario-cuerpo, .formulario-pie { padding-left: 16px; padding-right: 16px; }
+  .segmentos { width: 100%; }
+  .segmento { flex: 1 1 auto; }
+
+  /* Las tablas se convierten en tarjetas apiladas */
+  table.apilable thead { display: none; }
+  table.apilable, table.apilable tbody, table.apilable tr, table.apilable td { display: block; width: 100%; }
+  table.apilable tr { border: 1px solid var(--borde); border-radius: 12px; margin-bottom: 10px; padding: 6px 0; }
+  table.apilable td { border: 0; padding: 6px 14px; display: flex; justify-content: space-between; align-items: center; gap: 12px; text-align: right; }
+  table.apilable td::before { content: attr(data-label); font-size: 12.5px; color: var(--texto-suave); text-align: left; flex: 0 0 auto; }
+  table.apilable td.principal { text-align: left; font-size: 15px; }
+  table.apilable td.principal::before, table.apilable td[data-label="Acciones"]::before { display: none; }
+  table.apilable td[data-label="Acciones"] { justify-content: flex-end; }
+  table.apilable td .avance { flex: 1 1 auto; max-width: 70%; min-width: 0; }
+  tbody tr:hover td { background: transparent; }
+}
+@media print {
+  .menu, .formulario, .toasts, .acciones, .filtros, .nota-local { display: none !important; }
+  .columnas { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- =====================================================================
+     ENCABEZADO
+     ===================================================================== -->
+<header class="header">
+  <div class="franja" aria-hidden="true"></div>
+  <div class="wrap header-inner">
+    <img class="logo" alt="Escuela de Robótica del Chocó" src="data:image/webp;base64,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">
+    <div class="header-texto">
+      <h1>Seguimiento de sesiones docentes · Robótica Sin Fronteras</h1>
+      <p>Sesiones virtuales de profundización para innovar las prácticas pedagógicas y de evaluación con inteligencia artificial.
+         Docentes destacados de Istmina y Belén de Bajirá, Chocó.</p>
+    </div>
+    <button type="button" class="conexion" id="conexion" data-estado="conectando"><i aria-hidden="true"></i><span>Conectando…</span></button>
+    <details class="menu" id="menu-datos">
+      <summary class="btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg>
+        Datos
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
+      </summary>
+      <div class="menu-lista" role="menu">
+        <button type="button" role="menuitem" id="btn-csv"><span>Exportar registros (CSV)<small>Todas las sesiones, para abrir en Excel</small></span></button>
+        <button type="button" role="menuitem" id="btn-csv-resumen"><span>Exportar resumen (CSV)<small>Avance por docente</small></span></button>
+        <hr>
+        <button type="button" role="menuitem" id="btn-json"><span>Descargar copia de seguridad<small>Archivo JSON completo</small></span></button>
+        <button type="button" role="menuitem" id="btn-importar"><span>Importar copia de seguridad<small>Restaurar desde un archivo JSON</small></span></button>
+      </div>
+    </details>
+    <input type="file" id="input-importar" accept=".json,application/json" hidden>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- Resumen general (ambos municipios) -->
+  <section class="resumen" aria-labelledby="resumen-titulo">
+    <h2 class="resumen-titulo" id="resumen-titulo">Resumen general</h2>
+    <div class="kpis">
+      <div class="kpi">
+        <div class="kpi-label">Docentes</div>
+        <div class="kpi-valor" id="kpi-docentes">0</div>
+        <div class="kpi-sub" id="kpi-docentes-sub"></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Sesiones aprobadas</div>
+        <div class="kpi-valor ok" id="kpi-aprobadas">0</div>
+        <div class="kpi-sub" id="kpi-aprobadas-sub"></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Sesiones pendientes</div>
+        <div class="kpi-valor pend" id="kpi-pendientes">0</div>
+        <div class="kpi-sub" id="kpi-pendientes-sub"></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Horas acumuladas</div>
+        <div class="kpi-valor" id="kpi-horas">0 min</div>
+        <div class="kpi-sub" id="kpi-horas-sub"></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Cumplimiento general</div>
+        <div class="kpi-valor" id="kpi-porcentaje">0 %</div>
+        <div class="barra" id="kpi-barra"><i style="width:0%"></i></div>
+      </div>
+    </div>
+    <p class="nota-local">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 11v6M12 7.5h.01"/></svg>
+      Los registros se guardan en una base de datos en línea y se comparten entre todos los equipos que usan esta página. Sin conexión se muestra la última copia guardada en este navegador.
+    </p>
+  </section>
+
+  <!-- Pestañas de municipio -->
+  <div class="tabs" role="tablist" aria-label="Municipios" id="tabs"></div>
+
+  <!-- Paneles de cada municipio (se construyen desde JavaScript) -->
+  <div id="paneles"></div>
+</main>
+
+<footer>Escuela de Robótica del Chocó · Programa Robótica Sin Fronteras</footer>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<!-- Modal de confirmación reutilizable -->
+<div class="modal-fondo" id="modal" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-titulo" aria-describedby="modal-mensaje">
+    <h3 id="modal-titulo"></h3>
+    <p id="modal-mensaje"></p>
+    <div class="modal-acciones" id="modal-acciones"></div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+/* =====================================================================
+   1. CONFIGURACIÓN
+   Modifique estos valores para adaptar el sistema. Todos los cálculos
+   (estados, faltantes, porcentajes e indicadores) se derivan de ellos.
+   ===================================================================== */
+
+/** Horas requeridas para dar por cumplida (APROBADA) una sesión. Admite decimales (p. ej. 2.5). */
+const HORAS_POR_SESION = 3;
+
+/** Número de sesiones aprobadas que debe completar cada docente para considerar cumplido su proceso. */
+const SESIONES_REQUERIDAS_POR_DOCENTE = 1;
+
+/**
+ * Lista configurable de municipios y docentes.
+ * Para incorporar un docente basta con agregar su nombre al arreglo del municipio correspondiente.
+ * La clave (istmina / belen) identifica al municipio en los registros guardados: no la cambie
+ * si ya existen datos almacenados.
+ */
+const MUNICIPIOS = {
+  istmina: {
+    nombre: 'Istmina',
+    docentes: [
+      'Jorge Luis Renteria Murillo',
+      'Gladis Elena Marín Aguilar',
+      'Dollis Andrea Asprilla Moreno',
+      'Maribeth Gil Hinestroza',
+      'Felix Antonio Lozano Mosquera',
+      'Darwin Manuel Minotta Lemos',
+      'Rosa Mirta Murillourillo',
+      'Daysla Pastora Ferrer Moreno',
+      'Yesith Valencia Murillo',
+      'Sussy Yasmira Mosquera Mosquera',
+      'Yury Morelis Mosquera Mosquera',
+      'María Isaura Murillo Gil',
+      'Mirna Cecilia Bravo Cantillo',
+      'Liliana Patricia Lozano Mosquera',
+      'Diana Yisela Reyes Mina',
+      'Fernando Valderrama Urrutia',
+      'Esmaile Betancurt Castañeda',
+      'Anny Yurleida Caicedo Perea',
+      'Johana Patricia Mena Mosquera',
+      'Leiner Sanchez Mena',
+      'Adrian F. Lozano',
+      'Erika Zuley'
+    ]
+  },
+  belen: {
+    nombre: 'Belén de Bajirá',
+    docentes: [
+      'Yennier Adolfo Ríos Mosquera',
+      'Wilbert Hernán Cossío Hinestroza',
+      'Neyserlin Machado Perlaza',
+      'Juan Dario Arenas Concha',
+      'Yacira Valoyes Moreno',
+      'Luis Eustaquio Chaverra Quejada',
+      'Manuel Alfonso Rovira Heredia',
+      'Weinner Javier Romaña Sánchez',
+      'Eyesman Cordoba Renteria',
+      'Cesar Augusto Suárez Magaña',
+      'Rudveida Tuberquia',
+      'Ana Milena Martínez Berrio',
+      'Gloria María Agualimpia Mosquera',
+      'Yessenia Hinestroza Dediego',
+      'Jhofrey Moreno Mosquera',
+      'Rubi Lemus Nagles',
+      'Olga Moreno',
+      'Hernando Gomez Velasquez',
+      'Jhogene Romaña Casa'
+    ]
+  }
+};
+
+/**
+ * Conexión a la base de datos (Supabase). La clave publicable está diseñada para usarse en el
+ * navegador; los permisos reales los definen las políticas de la tabla (ver supabase.sql).
+ */
+const SUPABASE_URL = 'https://slzrablhqejyaylaonfk.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_4181XvzUbRi1Z6T6LWQ7pw_1bKTBegE';
+const TABLA_SESIONES = 'sesiones_docentes';
+
+/** Cada cuánto se consultan cambios hechos desde otros equipos (milisegundos). */
+const INTERVALO_ACTUALIZACION_MS = 60000;
+
+/** Claves de localStorage: copia local de respaldo, datos de la versión anterior y preferencias. */
+const CACHE_KEY = 'rsf_copia_local_supabase_v1';
+const STORAGE_KEY_ANTIGUO = 'rsf_seguimiento_sesiones_docentes_v1';
+const MIGRACION_KEY = 'rsf_migracion_local_revisada';
+const PESTANA_KEY = 'rsf_pestana_activa';
+const VERSION_DATOS = 2;
+
+/* =====================================================================
+   2. ESTADO DE LA APLICACIÓN
+   ===================================================================== */
+
+/**
+ * Registros de sesiones, separados por municipio.
+ * Cada registro: { id, docente, sesion, fecha (AAAA-MM-DD), minutos, observaciones, creadoEn, actualizadoEn }
+ */
+let datos = crearDatosVacios();
+
+/** Estado de la interfaz por municipio (pestaña activa, edición en curso, filtros...). */
+const ui = {
+  pestanaActiva: Object.keys(MUNICIPIOS)[0],
+  municipio: {}
+};
+Object.keys(MUNICIPIOS).forEach(clave => {
+  ui.municipio[clave] = { editandoId: null, docenteHistorial: '', busqueda: '', filtroEstado: 'todos' };
+});
+
+function crearDatosVacios() {
+  const vacios = {};
+  Object.keys(MUNICIPIOS).forEach(clave => { vacios[clave] = []; });
+  return vacios;
+}
+
+/* =====================================================================
+   3. UTILIDADES GENERALES
+   ===================================================================== */
+
+/** Minutos requeridos por sesión, derivados siempre de HORAS_POR_SESION. */
+function minutosRequeridosPorSesion() {
+  return Math.max(0, Math.round(HORAS_POR_SESION * 60));
+}
+
+/** Genera un identificador único (UUID v4) para cada registro. */
+function generarId() {
+  if (window.crypto && typeof window.crypto.randomUUID === 'function') return window.crypto.randomUUID();
+  const bytes = window.crypto.getRandomValues(new Uint8Array(16));
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  const hex = [...bytes].map(b => b.toString(16).padStart(2, '0')).join('');
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+}
+
+function esUUID(valor) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(valor));
+}
+
+/** Convierte horas y minutos a minutos totales. */
+function aMinutos(horas, minutos) {
+  return (Number(horas) || 0) * 60 + (Number(minutos) || 0);
+}
+
+/** Presenta una duración en formato legible: "2 h 30 min", "45 min", "3 h". */
+function formatearDuracion(minutosTotales) {
+  const total = Math.max(0, Math.round(Number(minutosTotales) || 0));
+  const horas = Math.floor(total / 60);
+  const minutos = total % 60;
+  if (horas === 0) return `${minutos} min`;
+  if (minutos === 0) return `${horas} h`;
+  return `${horas} h ${minutos} min`;
+}
+
+/** Fecha AAAA-MM-DD -> DD/MM/AAAA (sin conversiones de zona horaria). */
+function formatearFecha(fechaISO) {
+  if (!esFechaValida(fechaISO)) return '—';
+  const [a, m, d] = fechaISO.split('-');
+  return `${d}/${m}/${a}`;
+}
+
+/** Fecha de hoy en formato AAAA-MM-DD según la hora local. */
+function fechaHoy() {
+  const hoy = new Date();
+  const mm = String(hoy.getMonth() + 1).padStart(2, '0');
+  const dd = String(hoy.getDate()).padStart(2, '0');
+  return `${hoy.getFullYear()}-${mm}-${dd}`;
+}
+
+/** Valida una fecha AAAA-MM-DD real (descarta 2024-02-31, etc.). */
+function esFechaValida(fechaISO) {
+  if (typeof fechaISO !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(fechaISO)) return false;
+  const [a, m, d] = fechaISO.split('-').map(Number);
+  const fecha = new Date(a, m - 1, d);
+  return fecha.getFullYear() === a && fecha.getMonth() === m - 1 && fecha.getDate() === d;
+}
+
+/** Normaliza un texto para comparar (sin tildes, minúsculas, espacios simples). */
+function normalizarTexto(texto) {
+  return String(texto || '')
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .toLowerCase().replace(/\s+/g, ' ').trim();
+}
+
+/** Escapa HTML para mostrar texto ingresado por el usuario de forma segura. */
+function escaparHTML(texto) {
+  return String(texto ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+/** Orden cronológico: por fecha y, en empate, por momento de creación. */
+function compararCronologico(a, b) {
+  if (a.fecha !== b.fecha) return a.fecha < b.fecha ? -1 : 1;
+  return (a.creadoEn || '').localeCompare(b.creadoEn || '');
+}
+
+/** Comparación alfabética/numérica en español ("Sesión 2" antes que "Sesión 10"). */
+const comparadorTexto = new Intl.Collator('es', { numeric: true, sensitivity: 'base' });
+
+function porcentajeTexto(valor) {
+  const redondeado = Math.round(valor * 10) / 10;
+  return `${Number.isInteger(redondeado) ? redondeado : redondeado.toFixed(1).replace('.', ',')} %`;
+}
+
+function plural(n, singular, pluralTexto) {
+  return `${n} ${n === 1 ? singular : pluralTexto}`;
+}
+
+/* =====================================================================
+   4. PERSISTENCIA
+   - Base de datos (Supabase, vía su API REST): fuente oficial y compartida.
+   - localStorage: copia local para mostrar datos al instante y consultarlos sin conexión.
+   ===================================================================== */
+
+/** Estado de la conexión: 'conectando' | 'conectado' | 'sin-conexion'. */
+let estadoConexion = 'conectando';
+/** true mientras se hace la primera carga desde la base de datos. */
+let cargandoInicial = true;
+/** Evita escrituras simultáneas (por ejemplo, doble clic en Guardar). */
+let operacionEnCurso = false;
+/** Evita repetir el aviso de "sin conexión" en cada actualización automática. */
+let avisoSinConexionMostrado = false;
+
+class ErrorBaseDatos extends Error {}
+
+/** Traduce errores de la API a mensajes comprensibles. */
+function mensajeErrorBaseDatos(status, cuerpo) {
+  const codigo = cuerpo && cuerpo.code;
+  if (codigo === 'PGRST205' || codigo === '42P01') return 'La tabla de sesiones no existe en Supabase. Ejecute el archivo supabase.sql en el SQL Editor del proyecto.';
+  if (status === 401 || status === 403 || codigo === '42501') return 'La base de datos rechazó la operación por permisos. Revise las políticas de la tabla (supabase.sql).';
+  if (codigo === '23514' || codigo === '22P02' || codigo === '23502') return 'La base de datos rechazó datos inválidos.';
+  return `Error de la base de datos (${status}): ${(cuerpo && cuerpo.message) || 'sin detalle'}`;
+}
+
+/** Envía una solicitud a la API REST de Supabase y devuelve el JSON de respuesta. */
+async function solicitudSupabase(ruta, { metodo = 'GET', cuerpo, prefer } = {}) {
+  const encabezados = { apikey: SUPABASE_PUBLISHABLE_KEY, Accept: 'application/json' };
+  if (cuerpo !== undefined) encabezados['Content-Type'] = 'application/json';
+  if (prefer) encabezados.Prefer = prefer;
+  let respuesta;
+  try {
+    respuesta = await fetch(`${SUPABASE_URL}/rest/v1/${ruta}`, {
+      method: metodo, headers: encabezados, body: cuerpo !== undefined ? JSON.stringify(cuerpo) : undefined, cache: 'no-store'
+    });
+  } catch (error) {
+    throw new ErrorBaseDatos('No hay conexión con la base de datos. Verifique su conexión a internet.');
+  }
+  const texto = await respuesta.text();
+  let json = null;
+  try { json = texto ? JSON.parse(texto) : null; } catch (e) { json = null; }
+  if (!respuesta.ok) throw new ErrorBaseDatos(mensajeErrorBaseDatos(respuesta.status, json));
+  return json;
+}
+
+/** Fila de la base de datos -> registro de la aplicación. */
+function filaARegistro(fila) {
+  return {
+    id: fila.id,
+    docente: fila.docente,
+    sesion: fila.sesion,
+    fecha: fila.fecha,
+    minutos: Number(fila.minutos),
+    observaciones: fila.observaciones || '',
+    creadoEn: fila.creado_en,
+    actualizadoEn: fila.actualizado_en
+  };
+}
+
+/** Registro de la aplicación -> fila de la base de datos. */
+function registroAFila(municipio, registro) {
+  const fila = {
+    id: esUUID(registro.id) ? registro.id : generarId(),
+    municipio,
+    docente: registro.docente,
+    sesion: registro.sesion,
+    fecha: registro.fecha,
+    minutos: registro.minutos,
+    observaciones: registro.observaciones || ''
+  };
+  if (registro.creadoEn) fila.creado_en = registro.creadoEn;
+  return fila;
+}
+
+/** Operaciones sobre la tabla de sesiones. */
+const baseDatos = {
+  /** Trae todos los registros (en páginas de 1000) agrupados por municipio. */
+  async listarTodo() {
+    const resultado = crearDatosVacios();
+    const tamano = 1000;
+    for (let desde = 0; ; desde += tamano) {
+      const filas = await solicitudSupabase(
+        `${TABLA_SESIONES}?select=*&order=fecha.asc,creado_en.asc,id.asc&limit=${tamano}&offset=${desde}`);
+      filas.forEach(fila => { if (resultado[fila.municipio]) resultado[fila.municipio].push(filaARegistro(fila)); });
+      if (filas.length < tamano) break;
+    }
+    return resultado;
+  },
+  async insertar(filas) {
+    return (await solicitudSupabase(TABLA_SESIONES, { metodo: 'POST', cuerpo: filas, prefer: 'return=representation' })).map(filaARegistro);
+  },
+  /** Inserta omitiendo los identificadores que ya existen. Devuelve solo los insertados. */
+  async insertarOmitiendoExistentes(filas) {
+    return (await solicitudSupabase(`${TABLA_SESIONES}?on_conflict=id`, {
+      metodo: 'POST', cuerpo: filas, prefer: 'resolution=ignore-duplicates,return=representation' })).map(filaARegistro);
+  },
+  /** Devuelve el registro actualizado, o null si ya no existe. */
+  async actualizar(id, cambios) {
+    const filas = await solicitudSupabase(`${TABLA_SESIONES}?id=eq.${encodeURIComponent(id)}`, {
+      metodo: 'PATCH', cuerpo: cambios, prefer: 'return=representation' });
+    return filas.length ? filaARegistro(filas[0]) : null;
+  },
+  async eliminar(id) {
+    await solicitudSupabase(`${TABLA_SESIONES}?id=eq.${encodeURIComponent(id)}`, { metodo: 'DELETE', prefer: 'return=minimal' });
+  },
+  async eliminarTodos() {
+    await solicitudSupabase(`${TABLA_SESIONES}?id=not.is.null`, { metodo: 'DELETE', prefer: 'return=minimal' });
+  }
+};
+
+/** Divide un arreglo en lotes (para enviar importaciones grandes). */
+function enLotes(lista, tamano = 500) {
+  const lotes = [];
+  for (let i = 0; i < lista.length; i += tamano) lotes.push(lista.slice(i, i + tamano));
+  return lotes;
+}
+
+/** Convierte los datos por municipio en filas listas para la base de datos. */
+function datosAFilas(datosPorMunicipio) {
+  return Object.keys(MUNICIPIOS).flatMap(clave => (datosPorMunicipio[clave] || []).map(r => registroAFila(clave, r)));
+}
+
+/** Lee la copia local (se muestra mientras responde la base de datos o si no hay conexión). */
+function cargarCopiaLocal() {
+  try {
+    const crudo = localStorage.getItem(CACHE_KEY);
+    if (!crudo) return false;
+    const resultado = normalizarCopia(JSON.parse(crudo));
+    if (resultado) datos = resultado.datos;
+    return Boolean(resultado);
+  } catch (error) {
+    console.error(error);
+    return false;
+  }
+}
+
+/** Guarda la copia local con el último estado conocido de la base de datos. */
+function guardarCopiaLocal() {
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify({ version: VERSION_DATOS, guardadoEn: new Date().toISOString(), datos }));
+  } catch (error) {
+    console.warn('No fue posible actualizar la copia local.', error);
+  }
+}
+
+function actualizarIndicadorConexion() {
+  const indicador = document.getElementById('conexion');
+  const textos = {
+    conectando: 'Conectando…',
+    conectado: 'Base de datos conectada',
+    'sin-conexion': 'Sin conexión · reintentar'
+  };
+  indicador.dataset.estado = estadoConexion;
+  indicador.querySelector('span').textContent = textos[estadoConexion];
+  indicador.title = estadoConexion === 'sin-conexion'
+    ? 'No se pudo conectar. Se muestra la copia local; no se pueden guardar cambios. Clic para reintentar.'
+    : 'Clic para actualizar los datos desde la base de datos';
+}
+
+/**
+ * Descarga todos los registros desde la base de datos y actualiza la pantalla.
+ * silencioso: no muestra notificaciones de éxito (actualizaciones automáticas).
+ */
+async function sincronizarDesdeBaseDatos({ silencioso = true } = {}) {
+  if (operacionEnCurso) return false;
+  if (estadoConexion !== 'conectado') { estadoConexion = 'conectando'; actualizarIndicadorConexion(); }
+  try {
+    datos = await baseDatos.listarTodo();
+    estadoConexion = 'conectado';
+    avisoSinConexionMostrado = false;
+    guardarCopiaLocal();
+    if (!silencioso) mostrarToast('Datos actualizados desde la base de datos.', 'exito');
+    return true;
+  } catch (error) {
+    estadoConexion = 'sin-conexion';
+    // En las actualizaciones automáticas el error se avisa una sola vez hasta recuperar la conexión
+    if (!silencioso || !avisoSinConexionMostrado) mostrarToast(`${error.message} Se muestra la copia guardada en este navegador.`, 'error');
+    avisoSinConexionMostrado = true;
+    return false;
+  } finally {
+    cargandoInicial = false;
+    actualizarIndicadorConexion();
+    renderTodo();
+  }
+}
+
+/** Activa o desactiva los botones de escritura mientras se espera a la base de datos. */
+function marcarOperacion(enCurso, municipio, textoBoton) {
+  operacionEnCurso = enCurso;
+  if (municipio) {
+    const boton = el(municipio, 'guardar');
+    boton.disabled = enCurso;
+    if (textoBoton) boton.textContent = textoBoton;
+  }
+}
+
+/**
+ * La versión anterior guardaba solo en el navegador. Si quedan registros de esa versión,
+ * se ofrece subirlos una vez a la base de datos.
+ */
+async function ofrecerMigracionLocal() {
+  let antiguos;
+  try {
+    if (localStorage.getItem(MIGRACION_KEY)) return;
+    const crudo = localStorage.getItem(STORAGE_KEY_ANTIGUO);
+    antiguos = crudo ? normalizarCopia(JSON.parse(crudo)) : null;
+  } catch (e) { return; }
+  const total = antiguos ? Object.values(antiguos.datos).reduce((s, l) => s + l.length, 0) : 0;
+  if (!total) return;
+
+  const opcion = await abrirModal({
+    titulo: 'Registros guardados en este navegador',
+    mensaje: `Se encontraron ${plural(total, 'registro', 'registros')} de la versión anterior, guardados solo en este navegador.\n¿Desea subirlos a la base de datos para que queden disponibles en todos los equipos? Los registros que ya existan no se duplicarán.`,
+    botones: [
+      { texto: 'No subir', valor: 'no' },
+      { texto: 'Subir a la base de datos', valor: 'subir', clase: 'btn-principal' }
+    ]
+  });
+  if (opcion === null) return; // se volverá a preguntar la próxima vez
+  if (opcion === 'subir') {
+    try {
+      marcarOperacion(true);
+      let agregados = 0;
+      for (const lote of enLotes(datosAFilas(antiguos.datos))) agregados += (await baseDatos.insertarOmitiendoExistentes(lote)).length;
+      mostrarToast(`Registros subidos a la base de datos: ${agregados}.`, 'exito');
+    } catch (error) {
+      mostrarToast(error.message, 'error');
+      return;
+    } finally {
+      marcarOperacion(false);
+    }
+    await sincronizarDesdeBaseDatos();
+  }
+  try { localStorage.setItem(MIGRACION_KEY, new Date().toISOString()); } catch (e) { /* opcional */ }
+}
+
+/** Limpia y valida un registro proveniente del almacenamiento o de una importación. */
+function sanearRegistro(registro) {
+  if (!registro || typeof registro !== 'object') return null;
+  const docente = String(registro.docente || '').trim();
+  const sesion = String(registro.sesion || '').trim();
+  const fecha = String(registro.fecha || '').trim();
+  const minutos = Math.round(Number(registro.minutos));
+  if (!docente || !sesion || !esFechaValida(fecha) || !Number.isFinite(minutos) || minutos < 0 || minutos > 24 * 60) return null;
+  const ahora = new Date().toISOString();
+  return {
+    id: esUUID(registro.id) ? String(registro.id) : generarId(),
+    docente,
+    sesion,
+    fecha,
+    minutos,
+    observaciones: String(registro.observaciones || '').trim(),
+    creadoEn: String(registro.creadoEn || ahora),
+    actualizadoEn: String(registro.actualizadoEn || registro.creadoEn || ahora)
+  };
+}
+
+/**
+ * Acepta una copia completa ({ datos: { istmina: [], belen: [] } }) o directamente el objeto de datos.
+ * Devuelve { datos, descartados } o null si el formato no es reconocible.
+ */
+function normalizarCopia(objeto) {
+  if (!objeto || typeof objeto !== 'object') return null;
+  const origen = objeto.datos && typeof objeto.datos === 'object' ? objeto.datos : objeto;
+  const claves = Object.keys(MUNICIPIOS).filter(clave => Array.isArray(origen[clave]));
+  if (claves.length === 0) return null;
+  const limpio = crearDatosVacios();
+  let descartados = 0;
+  claves.forEach(clave => {
+    const idsVistos = new Set();
+    origen[clave].forEach(registro => {
+      const saneado = sanearRegistro(registro);
+      if (!saneado || idsVistos.has(saneado.id)) { descartados++; return; }
+      idsVistos.add(saneado.id);
+      limpio[clave].push(saneado);
+    });
+  });
+  return { datos: limpio, descartados };
+}
+
+/* =====================================================================
+   5. CÁLCULOS DE SEGUIMIENTO
+   ===================================================================== */
+
+/** Lista de docentes de un municipio: la configurada más cualquier nombre presente en registros antiguos. */
+function obtenerDocentes(municipio) {
+  const configurados = MUNICIPIOS[municipio].docentes.slice();
+  const conocidos = new Set(configurados);
+  const huerfanos = [];
+  datos[municipio].forEach(r => {
+    if (!conocidos.has(r.docente)) { conocidos.add(r.docente); huerfanos.push(r.docente); }
+  });
+  return { configurados, huerfanos, todos: configurados.concat(huerfanos.sort(comparadorTexto.compare)) };
+}
+
+/**
+ * Analiza todas las sesiones de un docente.
+ * Los registros con el mismo nombre/número de sesión se agrupan y su tiempo se acumula
+ * (permite sesiones parciales que se completan en registros posteriores).
+ */
+function analizarDocente(municipio, docente) {
+  const requerido = minutosRequeridosPorSesion();
+  const registros = datos[municipio].filter(r => r.docente === docente);
+  const grupos = new Map();
+
+  registros.slice().sort(compararCronologico).forEach(r => {
+    const clave = normalizarTexto(r.sesion);
+    if (!grupos.has(clave)) grupos.set(clave, { clave, nombre: r.sesion, registros: [] });
+    grupos.get(clave).registros.push(r);
+  });
+
+  // Acumulado de la sesión registro a registro (en orden cronológico)
+  const detallePorRegistro = new Map();
+  const sesiones = [...grupos.values()].map(grupo => {
+    let acumulado = 0;
+    grupo.registros.forEach(r => {
+      acumulado += r.minutos;
+      detallePorRegistro.set(r.id, {
+        acumuladoSesion: acumulado,
+        faltanteSesion: Math.max(0, requerido - acumulado),
+        aprobadoTrasRegistro: acumulado >= requerido
+      });
+    });
+    return {
+      clave: grupo.clave,
+      nombre: grupo.nombre,
+      registros: grupo.registros,
+      acumulado,
+      faltante: Math.max(0, requerido - acumulado),
+      aprobada: acumulado >= requerido,
+      // Minutos que cuentan para el requisito (lo que excede no suma al porcentaje)
+      computable: Math.min(acumulado, requerido)
+    };
+  }).sort((a, b) => comparadorTexto.compare(a.nombre, b.nombre));
+
+  sesiones.forEach(s => s.registros.forEach(r => {
+    detallePorRegistro.get(r.id).sesionAprobada = s.aprobada;
+  }));
+
+  const aprobadas = sesiones.filter(s => s.aprobada).length;
+  const objetivo = requerido * SESIONES_REQUERIDAS_POR_DOCENTE;
+  // Se toman las N sesiones con mayor avance (N = sesiones requeridas) para el porcentaje
+  const minutosComputables = sesiones
+    .map(s => s.computable).sort((a, b) => b - a)
+    .slice(0, SESIONES_REQUERIDAS_POR_DOCENTE)
+    .reduce((suma, m) => suma + m, 0);
+  const cumplido = aprobadas >= SESIONES_REQUERIDAS_POR_DOCENTE;
+  const porcentaje = cumplido ? 100 : (objetivo > 0 ? Math.min(100, (minutosComputables / objetivo) * 100) : 100);
+
+  let estado = 'pendiente';
+  if (cumplido) estado = 'aprobado';
+  else if (registros.length === 0) estado = 'sin-registros';
+
+  return {
+    docente,
+    registros,
+    sesiones,
+    detallePorRegistro,
+    aprobadas,
+    sesionesPorCompletar: Math.max(0, SESIONES_REQUERIDAS_POR_DOCENTE - aprobadas),
+    minutosTotales: registros.reduce((suma, r) => suma + r.minutos, 0),
+    minutosComputables: cumplido ? objetivo : minutosComputables,
+    objetivo,
+    minutosFaltantes: cumplido ? 0 : Math.max(0, objetivo - minutosComputables),
+    porcentaje,
+    estado
+  };
+}
+
+/** Resumen de uno o varios municipios. */
+function resumir(claves) {
+  const resumen = { docentes: 0, docentesAprobados: 0, sinRegistros: 0, sesionesAprobadas: 0, sesionesParciales: 0,
+    sesionesPorCompletar: 0, minutosTotales: 0, registros: 0, sumaPorcentajes: 0 };
+  claves.forEach(municipio => {
+    obtenerDocentes(municipio).todos.forEach(docente => {
+      const a = analizarDocente(municipio, docente);
+      resumen.docentes++;
+      if (a.estado === 'aprobado') resumen.docentesAprobados++;
+      if (a.estado === 'sin-registros') resumen.sinRegistros++;
+      resumen.sesionesAprobadas += a.aprobadas;
+      resumen.sesionesParciales += a.sesiones.length - a.aprobadas;
+      resumen.sesionesPorCompletar += a.sesionesPorCompletar;
+      resumen.minutosTotales += a.minutosTotales;
+      resumen.registros += a.registros.length;
+      resumen.sumaPorcentajes += a.porcentaje;
+    });
+  });
+  resumen.porcentaje = resumen.docentes ? resumen.sumaPorcentajes / resumen.docentes : 0;
+  return resumen;
+}
+
+/** Calcula cómo quedaría una sesión al guardar el formulario (excluye el registro en edición para no duplicar horas). */
+function simularGuardado(municipio, docente, sesion, minutosNuevos, idExcluido) {
+  const requerido = minutosRequeridosPorSesion();
+  const clave = normalizarTexto(sesion);
+  const previo = datos[municipio]
+    .filter(r => r.docente === docente && normalizarTexto(r.sesion) === clave && r.id !== idExcluido)
+    .reduce((suma, r) => suma + r.minutos, 0);
+  const total = previo + minutosNuevos;
+  return { previo, total, faltante: Math.max(0, requerido - total), aprobado: total >= requerido };
+}
+
+/* =====================================================================
+   6. COMPONENTES DE INTERFAZ REUTILIZABLES
+   ===================================================================== */
+
+/** Etiqueta de estado: verde APROBADO, amarilla "Faltan X" o gris "Sin registros". */
+function etiquetaEstado(aprobado, faltante, sinRegistros) {
+  if (sinRegistros) return '<span class="estado estado-sin">Sin registros</span>';
+  if (aprobado) return '<span class="estado estado-ok">APROBADO</span>';
+  return `<span class="estado estado-pend">Faltan ${formatearDuracion(faltante)}</span>`;
+}
+
+/** Barra de avance con texto "X de Y" y porcentaje. */
+function bloqueAvance(minutos, objetivo) {
+  const porcentaje = objetivo > 0 ? Math.min(100, (minutos / objetivo) * 100) : 100;
+  return `<div class="avance">
+    <div class="avance-texto"><b>${formatearDuracion(minutos)} <span>de ${formatearDuracion(objetivo)}</span></b><span>${Math.round(porcentaje)}%</span></div>
+    <div class="barra ${porcentaje >= 100 ? 'completa' : ''}" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(porcentaje)}"><i style="width:${porcentaje}%"></i></div>
+  </div>`;
+}
+
+function bloqueVacio(titulo, texto) {
+  return `<div class="vacio"><strong>${titulo}</strong>${texto}</div>`;
+}
+
+const ICONOS = {
+  editar: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>',
+  eliminar: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>',
+  historial: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>',
+  buscar: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>'
+};
+
+/** Notificación temporal (exito | error | advertencia | info). */
+function mostrarToast(mensaje, tipo = 'info') {
+  const contenedor = document.getElementById('toasts');
+  const toast = document.createElement('div');
+  toast.className = `toast ${tipo}`;
+  toast.setAttribute('role', tipo === 'error' ? 'alert' : 'status');
+  toast.textContent = mensaje;
+  contenedor.appendChild(toast);
+  setTimeout(() => { toast.classList.add('ocultar'); setTimeout(() => toast.remove(), 300); }, tipo === 'error' ? 5500 : 3500);
+}
+
+/**
+ * Modal de confirmación. Devuelve una promesa con el valor del botón elegido (o null si se cancela).
+ * botones: [{ texto, valor, clase }]
+ */
+function abrirModal({ titulo, mensaje, botones }) {
+  return new Promise(resolver => {
+    const modal = document.getElementById('modal');
+    const acciones = document.getElementById('modal-acciones');
+    const focoPrevio = document.activeElement;
+    document.getElementById('modal-titulo').textContent = titulo;
+    document.getElementById('modal-mensaje').textContent = mensaje;
+    acciones.innerHTML = '';
+
+    const cerrar = valor => {
+      modal.hidden = true;
+      document.removeEventListener('keydown', alTeclear);
+      modal.removeEventListener('click', alClicFondo);
+      if (focoPrevio && focoPrevio.focus) focoPrevio.focus();
+      resolver(valor);
+    };
+    const alTeclear = e => { if (e.key === 'Escape') cerrar(null); };
+    const alClicFondo = e => { if (e.target === modal) cerrar(null); };
+
+    botones.forEach(b => {
+      const boton = document.createElement('button');
+      boton.type = 'button';
+      boton.className = `btn ${b.clase || ''}`;
+      boton.textContent = b.texto;
+      boton.addEventListener('click', () => cerrar(b.valor));
+      acciones.appendChild(boton);
+    });
+    document.addEventListener('keydown', alTeclear);
+    modal.addEventListener('click', alClicFondo);
+    modal.hidden = false;
+    acciones.lastElementChild.focus();
+  });
+}
+
+async function confirmar(titulo, mensaje, textoAceptar = 'Aceptar', claseAceptar = 'btn-principal') {
+  const r = await abrirModal({ titulo, mensaje, botones: [
+    { texto: 'Cancelar', valor: false },
+    { texto: textoAceptar, valor: true, clase: claseAceptar }
+  ] });
+  return r === true;
+}
+
+/* =====================================================================
+   7. CONSTRUCCIÓN DE PESTAÑAS Y PANELES
+   ===================================================================== */
+
+/** Obtiene un elemento del panel de un municipio. */
+function el(municipio, nombre) {
+  return document.getElementById(`${municipio}-${nombre}`);
+}
+
+function construirPestanas() {
+  const tabs = document.getElementById('tabs');
+  tabs.innerHTML = Object.entries(MUNICIPIOS).map(([clave, m]) => `
+    <button class="tab" role="tab" type="button" id="tab-${clave}" aria-controls="panel-${clave}" data-municipio="${clave}">
+      ${escaparHTML(m.nombre)} <span class="num" id="tab-num-${clave}">0</span>
+    </button>`).join('');
+
+  tabs.addEventListener('click', e => {
+    const boton = e.target.closest('.tab');
+    if (boton) activarPestana(boton.dataset.municipio);
+  });
+  // Navegación con flechas entre pestañas
+  tabs.addEventListener('keydown', e => {
+    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+    const claves = Object.keys(MUNICIPIOS);
+    const indice = claves.indexOf(ui.pestanaActiva);
+    const siguiente = claves[(indice + (e.key === 'ArrowRight' ? 1 : claves.length - 1)) % claves.length];
+    activarPestana(siguiente);
+    document.getElementById(`tab-${siguiente}`).focus();
+  });
+}
+
+function activarPestana(municipio) {
+  ui.pestanaActiva = municipio;
+  Object.keys(MUNICIPIOS).forEach(clave => {
+    const activa = clave === municipio;
+    const tab = document.getElementById(`tab-${clave}`);
+    tab.setAttribute('aria-selected', String(activa));
+    tab.tabIndex = activa ? 0 : -1;
+    document.getElementById(`panel-${clave}`).hidden = !activa;
+  });
+  try { localStorage.setItem(PESTANA_KEY, municipio); } catch (e) { /* preferencia opcional */ }
+}
+
+/** Crea la estructura HTML del panel de un municipio y conecta sus eventos. */
+function construirPanel(municipio) {
+  const m = MUNICIPIOS[municipio];
+  const p = municipio; // prefijo de los identificadores
+  const seccion = document.createElement('section');
+  seccion.className = 'panel';
+  seccion.id = `panel-${p}`;
+  seccion.setAttribute('role', 'tabpanel');
+  seccion.setAttribute('aria-labelledby', `tab-${p}`);
+  seccion.innerHTML = `
+    <!-- Formulario de registro en ventana modal -->
+    <div class="modal-fondo registro" id="${p}-modal" hidden>
+      <form class="modal formulario" id="${p}-form" role="dialog" aria-modal="true" aria-labelledby="${p}-form-titulo" novalidate autocomplete="off">
+        <div class="formulario-cabeza">
+          <div><h2 id="${p}-form-titulo">Registrar sesión</h2><div class="formulario-sub">${escaparHTML(m.nombre)}</div></div>
+          <button type="button" class="btn btn-icono" id="${p}-cerrar" title="Cerrar" aria-label="Cerrar">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+          </button>
+        </div>
+        <div class="formulario-cuerpo">
+        <div class="aviso-edicion"><span id="${p}-edit-texto">Editando registro</span></div>
+
+        <div class="campo">
+          <label for="${p}-docente">Docente</label>
+          <select class="input" id="${p}-docente" required></select>
+          <div class="error" id="${p}-docente-error"></div>
+        </div>
+        <div class="campo">
+          <label for="${p}-sesion">Sesión</label>
+          <input class="input" id="${p}-sesion" list="${p}-sesiones-lista" maxlength="80" placeholder="Ej.: Sesión 1" required>
+          <datalist id="${p}-sesiones-lista"></datalist>
+          <div class="ayuda">Para completar una sesión parcial, use el mismo nombre.</div>
+          <div class="error" id="${p}-sesion-error"></div>
+        </div>
+        <div class="campo">
+          <label for="${p}-fecha">Fecha</label>
+          <input class="input" type="date" id="${p}-fecha" required>
+          <div class="error" id="${p}-fecha-error"></div>
+        </div>
+        <div class="campo">
+          <span class="etiqueta" id="${p}-duracion-label">Duración de esta sesión</span>
+          <div class="duracion" role="group" aria-labelledby="${p}-duracion-label">
+            <div class="con-unidad"><input class="input" type="number" inputmode="numeric" id="${p}-horas" min="0" max="24" step="1" placeholder="0" aria-label="Horas"><span>h</span></div>
+            <div class="con-unidad"><input class="input" type="number" inputmode="numeric" id="${p}-minutos" min="0" max="59" step="1" placeholder="0" aria-label="Minutos"><span>min</span></div>
+          </div>
+          <div class="error" id="${p}-duracion-error"></div>
+        </div>
+        <div class="campo">
+          <label for="${p}-observaciones">Observaciones <span style="font-weight:400;color:var(--texto-suave)">(opcional)</span></label>
+          <textarea class="input" id="${p}-observaciones" maxlength="300" placeholder="Temas o herramientas trabajadas"></textarea>
+        </div>
+
+        <div class="calculo" id="${p}-calculo" aria-live="polite"></div>
+        </div>
+        <div class="formulario-pie">
+          <button type="button" class="btn" id="${p}-cancelar">Cancelar</button>
+          <button type="submit" class="btn btn-principal" id="${p}-guardar">Guardar sesión</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="columnas">
+      <div>
+        <!-- Avance por docente -->
+        <div class="tarjeta">
+          <div class="tarjeta-cabeza">
+            <h2>Docentes de ${escaparHTML(m.nombre)}</h2>
+            <div class="cabeza-acciones">
+              <span class="contador" id="${p}-contador"></span>
+              <button type="button" class="btn btn-principal" id="${p}-nuevo">+ Registrar sesión</button>
+            </div>
+          </div>
+          <div class="filtros">
+            <div class="buscador">${ICONOS.buscar}
+              <label class="sr-only" for="${p}-buscar">Buscar docente</label>
+              <input class="input" type="search" id="${p}-buscar" placeholder="Buscar docente">
+            </div>
+            <div class="segmentos" role="group" aria-label="Filtrar por estado" id="${p}-filtro">
+              <button type="button" class="segmento" data-filtro="todos" aria-pressed="true">Todos</button>
+              <button type="button" class="segmento" data-filtro="aprobado" aria-pressed="false">Aprobados</button>
+              <button type="button" class="segmento" data-filtro="pendiente" aria-pressed="false">En curso</button>
+              <button type="button" class="segmento" data-filtro="sin-registros" aria-pressed="false">Sin registros</button>
+            </div>
+          </div>
+          <div id="${p}-docentes"></div>
+        </div>
+
+        <!-- Historial de sesiones -->
+        <div class="tarjeta" id="${p}-historial-tarjeta">
+          <div class="tarjeta-cabeza">
+            <h2>Historial de sesiones</h2>
+            <div style="flex:0 1 300px; min-width:200px">
+              <label class="sr-only" for="${p}-historial-docente">Docente del historial</label>
+              <select class="input" id="${p}-historial-docente"></select>
+            </div>
+          </div>
+          <div id="${p}-historial-resumen"></div>
+          <div id="${p}-historial"></div>
+          <p class="leyenda"><b>Duración</b>: tiempo de ese registro. <b>Acumulado</b>: suma de la misma sesión hasta esa fecha
+            (requisito: ${formatearDuracion(minutosRequeridosPorSesion())}).</p>
+        </div>
+      </div>
+    </div>`;
+  document.getElementById('paneles').appendChild(seccion);
+  conectarEventosPanel(municipio);
+  restablecerFormulario(municipio);
+}
+
+function conectarEventosPanel(municipio) {
+  el(municipio, 'form').addEventListener('submit', e => { e.preventDefault(); guardarRegistro(municipio); });
+  el(municipio, 'nuevo').addEventListener('click', () => abrirFormulario(municipio));
+  el(municipio, 'cancelar').addEventListener('click', () => cerrarFormulario(municipio));
+  el(municipio, 'cerrar').addEventListener('click', () => cerrarFormulario(municipio));
+  // Escape cierra el formulario (el modal de confirmación tiene su propio manejo)
+  el(municipio, 'modal').addEventListener('keydown', e => {
+    if (e.key === 'Escape') { e.stopPropagation(); cerrarFormulario(municipio); }
+  });
+
+  // Cálculo en vivo mientras se diligencia el formulario
+  ['docente', 'sesion', 'fecha', 'horas', 'minutos'].forEach(campo => {
+    el(municipio, campo).addEventListener('input', () => {
+      el(municipio, campo).classList.remove('invalido');
+      el(municipio, (campo === 'horas' || campo === 'minutos') ? 'duracion-error' : `${campo}-error`).textContent = '';
+      if (campo === 'docente') actualizarSugerenciasSesion(municipio);
+      renderCalculo(municipio);
+    });
+  });
+
+  // Búsqueda y filtro de docentes
+  el(municipio, 'buscar').addEventListener('input', e => {
+    ui.municipio[municipio].busqueda = e.target.value;
+    renderTablaDocentes(municipio);
+  });
+  el(municipio, 'filtro').addEventListener('click', e => {
+    const boton = e.target.closest('.segmento');
+    if (!boton) return;
+    ui.municipio[municipio].filtroEstado = boton.dataset.filtro;
+    el(municipio, 'filtro').querySelectorAll('.segmento').forEach(b => b.setAttribute('aria-pressed', String(b === boton)));
+    renderTablaDocentes(municipio);
+  });
+
+  // Selector del historial
+  el(municipio, 'historial-docente').addEventListener('change', e => {
+    ui.municipio[municipio].docenteHistorial = e.target.value;
+    renderTablaDocentes(municipio);
+    renderHistorial(municipio);
+  });
+
+  // Acciones de la tabla de docentes (delegación de eventos)
+  el(municipio, 'docentes').addEventListener('click', e => {
+    const boton = e.target.closest('button[data-accion]');
+    if (!boton) return;
+    const docente = boton.dataset.docente;
+    if (boton.dataset.accion === 'ver') verHistorialDocente(municipio, docente);
+    if (boton.dataset.accion === 'registrar') prepararRegistro(municipio, docente);
+  });
+  // Acciones del historial
+  el(municipio, 'historial').addEventListener('click', e => {
+    const boton = e.target.closest('button[data-accion]');
+    if (!boton) return;
+    if (boton.dataset.accion === 'editar') iniciarEdicion(municipio, boton.dataset.id);
+    if (boton.dataset.accion === 'eliminar') eliminarRegistro(municipio, boton.dataset.id);
+  });
+}
+
+/* =====================================================================
+   8. FORMULARIO: GUARDAR, EDITAR, ELIMINAR
+   ===================================================================== */
+
+function poblarSelectDocentes(municipio) {
+  const { configurados, huerfanos } = obtenerDocentes(municipio);
+  const opciones = lista => lista.map(d => `<option value="${escaparHTML(d)}">${escaparHTML(d)}</option>`).join('');
+
+  const select = el(municipio, 'docente');
+  const valorActual = select.value;
+  select.innerHTML = '<option value="">Seleccione un docente</option>' + opciones(configurados) +
+    (huerfanos.length ? `<optgroup label="Fuera de la lista configurada">${opciones(huerfanos)}</optgroup>` : '');
+  select.value = valorActual;
+
+  const selHist = el(municipio, 'historial-docente');
+  selHist.innerHTML = '<option value="">Todos los docentes</option>' + opciones(configurados.concat(huerfanos));
+  if (![...selHist.options].some(o => o.value === ui.municipio[municipio].docenteHistorial)) ui.municipio[municipio].docenteHistorial = '';
+  selHist.value = ui.municipio[municipio].docenteHistorial;
+}
+
+/** Sugiere en el campo "sesión" los nombres ya usados por el docente seleccionado. */
+function actualizarSugerenciasSesion(municipio) {
+  const docente = el(municipio, 'docente').value;
+  const sugerencias = [];
+  if (docente) {
+    analizarDocente(municipio, docente).sesiones.forEach(s => {
+      sugerencias.push(`<option value="${escaparHTML(s.nombre)}">${s.aprobada ? 'Aprobada' : 'Faltan ' + formatearDuracion(s.faltante)}</option>`);
+    });
+  }
+  for (let i = 1; i <= Math.max(3, SESIONES_REQUERIDAS_POR_DOCENTE); i++) sugerencias.push(`<option value="Sesión ${i}"></option>`);
+  el(municipio, 'sesiones-lista').innerHTML = sugerencias.join('');
+}
+
+/** Propone el nombre de sesión más útil: la sesión pendiente o la siguiente numeración. */
+function sugerirSiguienteSesion(municipio, docente) {
+  const campo = el(municipio, 'sesion');
+  if (campo.value.trim()) return;
+  const analisis = analizarDocente(municipio, docente);
+  const pendiente = analisis.sesiones.find(s => !s.aprobada);
+  campo.value = pendiente ? pendiente.nombre : `Sesión ${analisis.sesiones.length + 1}`;
+}
+
+/** Elemento que tenía el foco antes de abrir el formulario (para devolverlo al cerrar). */
+let focoAntesDelFormulario = null;
+
+/** Muestra la ventana modal del formulario. */
+function mostrarModalFormulario(municipio, campoInicial) {
+  const modal = el(municipio, 'modal');
+  if (modal.hidden) focoAntesDelFormulario = document.activeElement;
+  modal.hidden = false;
+  modal.scrollTop = 0;
+  document.body.classList.add('con-modal');
+  el(municipio, campoInicial).focus();
+}
+
+/** Abre el formulario vacío para registrar una sesión nueva (opcionalmente con un docente ya elegido). */
+function abrirFormulario(municipio, docente = '') {
+  restablecerFormulario(municipio);
+  if (docente) {
+    el(municipio, 'docente').value = docente;
+    actualizarSugerenciasSesion(municipio);
+    sugerirSiguienteSesion(municipio, docente);
+    renderCalculo(municipio);
+  }
+  mostrarModalFormulario(municipio, docente ? 'horas' : 'docente');
+}
+
+/** Cierra el formulario y descarta lo que no se haya guardado. */
+function cerrarFormulario(municipio) {
+  el(municipio, 'modal').hidden = true;
+  document.body.classList.remove('con-modal');
+  restablecerFormulario(municipio);
+  if (focoAntesDelFormulario && document.contains(focoAntesDelFormulario)) focoAntesDelFormulario.focus();
+  focoAntesDelFormulario = null;
+}
+
+/** Abre el formulario con el docente elegido desde la tabla. */
+function prepararRegistro(municipio, docente) {
+  abrirFormulario(municipio, docente);
+}
+
+function leerFormulario(municipio) {
+  return {
+    docente: el(municipio, 'docente').value.trim(),
+    sesion: el(municipio, 'sesion').value.trim().replace(/\s+/g, ' '),
+    fecha: el(municipio, 'fecha').value,
+    horasTexto: el(municipio, 'horas').value.trim(),
+    minutosTexto: el(municipio, 'minutos').value.trim(),
+    observaciones: el(municipio, 'observaciones').value.trim()
+  };
+}
+
+/** Valida el formulario. Devuelve { valido, errores, minutos }. */
+function validarFormulario(municipio, valores) {
+  const errores = {};
+  const { todos } = obtenerDocentes(municipio);
+  if (!valores.docente) errores.docente = 'Seleccione el docente.';
+  else if (!todos.includes(valores.docente)) errores.docente = 'El docente no pertenece a este municipio.';
+
+  if (!valores.sesion) errores.sesion = 'Indique el número o nombre de la sesión.';
+
+  if (!valores.fecha) errores.fecha = 'Indique la fecha de la sesión.';
+  else if (!esFechaValida(valores.fecha) || valores.fecha < '2000-01-01') errores.fecha = 'La fecha no es válida.';
+  else if (valores.fecha > fechaHoy()) errores.fecha = 'La fecha no puede ser posterior a hoy.';
+
+  const esEntero = t => /^\d+$/.test(t);
+  let minutos = null;
+  if (valores.horasTexto === '' && valores.minutosTexto === '') {
+    errores.duracion = 'Ingrese la duración en horas y/o minutos.';
+  } else if ((valores.horasTexto !== '' && !esEntero(valores.horasTexto)) || (valores.minutosTexto !== '' && !esEntero(valores.minutosTexto))) {
+    errores.duracion = 'Use solo números enteros, sin valores negativos ni decimales.';
+  } else {
+    const h = Number(valores.horasTexto || 0);
+    const mi = Number(valores.minutosTexto || 0);
+    if (mi > 59) errores.duracion = 'Los minutos deben estar entre 0 y 59.';
+    else if (h > 24 || aMinutos(h, mi) > 24 * 60) errores.duracion = 'La duración no puede superar 24 horas.';
+    else minutos = aMinutos(h, mi);
+  }
+  return { valido: Object.keys(errores).length === 0, errores, minutos };
+}
+
+function mostrarErrores(municipio, errores, enfocar = true) {
+  const campos = { docente: ['docente'], sesion: ['sesion'], fecha: ['fecha'], duracion: ['horas', 'minutos'] };
+  Object.entries(campos).forEach(([clave, ids]) => {
+    el(municipio, `${clave}-error`).textContent = errores[clave] || '';
+    ids.forEach(id => el(municipio, id).classList.toggle('invalido', Boolean(errores[clave])));
+  });
+  const primero = Object.keys(campos).find(c => errores[c]);
+  if (enfocar && primero) el(municipio, campos[primero][0]).focus();
+}
+
+async function guardarRegistro(municipio) {
+  const valores = leerFormulario(municipio);
+  const { valido, errores, minutos } = validarFormulario(municipio, valores);
+  mostrarErrores(municipio, errores);
+  if (!valido) {
+    mostrarToast('Revise los campos marcados antes de guardar.', 'error');
+    return;
+  }
+
+  const estadoUI = ui.municipio[municipio];
+  const editandoId = estadoUI.editandoId;
+  const lista = datos[municipio];
+
+  // Sesión de duración cero: se permite, pero se pide confirmación
+  if (minutos === 0) {
+    const ok = await confirmar('Sesión sin duración', 'La duración registrada es 0 min. El registro quedará en el historial pero no sumará tiempo al acumulado.\n¿Desea continuar?', 'Registrar de todas formas');
+    if (!ok) return;
+  }
+
+  // Posible duplicado accidental: mismo docente, sesión, fecha y duración
+  const claveSesion = normalizarTexto(valores.sesion);
+  const duplicado = lista.find(r => r.id !== editandoId && r.docente === valores.docente &&
+    normalizarTexto(r.sesion) === claveSesion && r.fecha === valores.fecha && r.minutos === minutos);
+  if (duplicado) {
+    const ok = await confirmar('Posible registro duplicado',
+      `Ya existe un registro de "${duplicado.sesion}" para ${valores.docente} el ${formatearFecha(valores.fecha)} con ${formatearDuracion(minutos)}.\n¿Desea guardarlo de todas formas? El tiempo se sumará al acumulado.`,
+      'Guardar igualmente');
+    if (!ok) return;
+  }
+
+  if (operacionEnCurso) return;
+  const textoBoton = el(municipio, 'guardar').textContent;
+  marcarOperacion(true, municipio, 'Guardando…');
+  const campos = { docente: valores.docente, sesion: valores.sesion, fecha: valores.fecha, minutos, observaciones: valores.observaciones };
+  try {
+    if (editandoId) {
+      // EDICIÓN: se actualiza el mismo registro (mismo id) en la base de datos, por lo que sus horas no se duplican
+      const actualizado = await baseDatos.actualizar(editandoId, campos);
+      if (!actualizado) {
+        mostrarToast('El registro que estaba editando ya no existe (pudo eliminarse desde otro equipo).', 'error');
+        marcarOperacion(false, municipio, textoBoton);
+        cerrarFormulario(municipio);
+        await sincronizarDesdeBaseDatos();
+        return;
+      }
+      // (se usa datos[municipio] y no una referencia previa: una actualización automática pudo reemplazarlo)
+      const indice = datos[municipio].findIndex(r => r.id === editandoId);
+      if (indice === -1) datos[municipio].push(actualizado); else datos[municipio][indice] = actualizado;
+    } else {
+      const [creado] = await baseDatos.insertar([registroAFila(municipio, { id: generarId(), ...campos })]);
+      datos[municipio].push(creado);
+    }
+    estadoConexion = 'conectado';
+  } catch (error) {
+    // El formulario queda abierto para no perder lo diligenciado
+    mostrarToast(`No se guardó: ${error.message}`, 'error');
+    marcarOperacion(false, municipio, textoBoton);
+    return;
+  }
+  marcarOperacion(false, municipio, textoBoton);
+  guardarCopiaLocal();
+  actualizarIndicadorConexion();
+
+  const sesion = analizarDocente(municipio, valores.docente).sesiones.find(s => s.clave === claveSesion);
+  const estadoTexto = sesion.aprobada ? 'APROBADO' : `faltan ${formatearDuracion(sesion.faltante)}`;
+  mostrarToast(`${editandoId ? 'Registro actualizado' : 'Sesión guardada'}. ${valores.sesion}: ${formatearDuracion(sesion.acumulado)} acumulado (${estadoTexto}).`, 'exito');
+
+  // Tras guardar se cierra el formulario y el historial muestra al docente afectado
+  estadoUI.docenteHistorial = valores.docente;
+  cerrarFormulario(municipio);
+  renderTodo();
+}
+
+function iniciarEdicion(municipio, id) {
+  const registro = datos[municipio].find(r => r.id === id);
+  if (!registro) { mostrarToast('No se encontró el registro.', 'error'); return; }
+  ui.municipio[municipio].editandoId = id;
+  poblarSelectDocentes(municipio);
+  el(municipio, 'docente').value = registro.docente;
+  el(municipio, 'sesion').value = registro.sesion;
+  el(municipio, 'fecha').value = registro.fecha;
+  el(municipio, 'horas').value = Math.floor(registro.minutos / 60);
+  el(municipio, 'minutos').value = registro.minutos % 60;
+  el(municipio, 'observaciones').value = registro.observaciones || '';
+  mostrarErrores(municipio, {}, false);
+  el(municipio, 'form').classList.add('editando');
+  el(municipio, 'form-titulo').textContent = 'Editar sesión';
+  el(municipio, 'edit-texto').textContent = `${registro.sesion} · ${formatearFecha(registro.fecha)}`;
+  el(municipio, 'guardar').textContent = 'Guardar cambios';
+  actualizarSugerenciasSesion(municipio);
+  renderCalculo(municipio);
+  renderHistorial(municipio);
+  mostrarModalFormulario(municipio, 'horas');
+}
+
+async function eliminarRegistro(municipio, id) {
+  const lista = datos[municipio];
+  const registro = lista.find(r => r.id === id);
+  if (!registro) { mostrarToast('No se encontró el registro.', 'error'); return; }
+  const ok = await confirmar('¿Eliminar este registro?',
+    `${registro.docente}\n${registro.sesion} · ${formatearFecha(registro.fecha)} · ${formatearDuracion(registro.minutos)}\n\nEl acumulado se recalculará. Esta acción no se puede deshacer.`,
+    'Eliminar', 'btn-peligro');
+  if (!ok) return;
+  if (operacionEnCurso) { mostrarToast('Espere a que termine la operación en curso e intente de nuevo.', 'advertencia'); return; }
+  marcarOperacion(true);
+  try {
+    await baseDatos.eliminar(id);
+  } catch (error) {
+    mostrarToast(`No se eliminó: ${error.message}`, 'error');
+    return;
+  } finally {
+    marcarOperacion(false);
+  }
+  datos[municipio] = datos[municipio].filter(r => r.id !== id);
+  guardarCopiaLocal();
+  if (ui.municipio[municipio].editandoId === id) restablecerFormulario(municipio);
+  mostrarToast('Registro eliminado. Acumulados recalculados.', 'exito');
+  renderTodo();
+}
+
+function restablecerFormulario(municipio) {
+  ui.municipio[municipio].editandoId = null;
+  el(municipio, 'form').reset();
+  el(municipio, 'form').classList.remove('editando');
+  el(municipio, 'form-titulo').textContent = 'Registrar sesión';
+  el(municipio, 'guardar').textContent = 'Guardar sesión';
+  el(municipio, 'fecha').value = fechaHoy();
+  el(municipio, 'fecha').max = fechaHoy();
+  mostrarErrores(municipio, {}, false);
+  actualizarSugerenciasSesion(municipio);
+  renderCalculo(municipio);
+  renderHistorial(municipio);
+}
+
+/* =====================================================================
+   9. RENDERIZADO
+   ===================================================================== */
+
+/** Muestra cómo quedará la sesión al guardar (duración individual vs. acumulado). */
+function renderCalculo(municipio) {
+  const contenedor = el(municipio, 'calculo');
+  const valores = leerFormulario(municipio);
+  const requerido = minutosRequeridosPorSesion();
+  const h = /^\d+$/.test(valores.horasTexto) ? Number(valores.horasTexto) : 0;
+  const mi = /^\d+$/.test(valores.minutosTexto) ? Math.min(Number(valores.minutosTexto), 59) : 0;
+  const minutos = aMinutos(h, mi);
+
+  if (!valores.docente || !valores.sesion) {
+    contenedor.innerHTML = `<div class="calculo-vacio">Cada sesión requiere <b>${formatearDuracion(requerido)}</b>. Elija docente y sesión para ver el cálculo.</div>`;
+    return;
+  }
+  const sim = simularGuardado(municipio, valores.docente, valores.sesion, minutos, ui.municipio[municipio].editandoId);
+  contenedor.innerHTML = `
+    ${sim.previo > 0 ? `<div class="calculo-fila"><span>Ya acumulado en esta sesión</span><b>${formatearDuracion(sim.previo)}</b></div>` : ''}
+    <div class="calculo-fila"><span>Acumulado al guardar</span><b>${formatearDuracion(sim.total)} de ${formatearDuracion(requerido)}</b></div>
+    <div class="calculo-fila"><span>Estado</span>${etiquetaEstado(sim.aprobado, sim.faltante)}</div>`;
+}
+
+function renderIndicadoresGlobales() {
+  const r = resumir(Object.keys(MUNICIPIOS));
+  document.getElementById('kpi-docentes').textContent = r.docentes;
+  document.getElementById('kpi-docentes-sub').textContent = `${r.docentesAprobados} con requisito cumplido`;
+  document.getElementById('kpi-aprobadas').textContent = r.sesionesAprobadas;
+  document.getElementById('kpi-aprobadas-sub').textContent = `de ${formatearDuracion(minutosRequeridosPorSesion())} cada una`;
+  document.getElementById('kpi-pendientes').textContent = r.sesionesPorCompletar;
+  document.getElementById('kpi-pendientes-sub').textContent = `${r.sesionesParciales} en curso`;
+  document.getElementById('kpi-horas').textContent = formatearDuracion(r.minutosTotales);
+  document.getElementById('kpi-horas-sub').textContent = plural(r.registros, 'registro', 'registros');
+  document.getElementById('kpi-porcentaje').textContent = porcentajeTexto(r.porcentaje);
+  const barra = document.getElementById('kpi-barra');
+  barra.classList.toggle('completa', r.porcentaje >= 100);
+  barra.firstElementChild.style.width = `${Math.min(100, r.porcentaje)}%`;
+  Object.keys(MUNICIPIOS).forEach(clave => { document.getElementById(`tab-num-${clave}`).textContent = obtenerDocentes(clave).todos.length; });
+}
+
+function renderTablaDocentes(municipio) {
+  const estadoUI = ui.municipio[municipio];
+  const { todos, huerfanos } = obtenerDocentes(municipio);
+  const busqueda = normalizarTexto(estadoUI.busqueda);
+  const filtro = estadoUI.filtroEstado;
+
+  const analisis = todos.map(d => analizarDocente(municipio, d));
+  const aprobados = analisis.filter(a => a.estado === 'aprobado').length;
+  const visibles = analisis.filter(a => {
+    if (busqueda && !normalizarTexto(a.docente).includes(busqueda)) return false;
+    return filtro === 'todos' || a.estado === filtro;
+  });
+
+  el(municipio, 'contador').textContent = `${aprobados} de ${todos.length} aprobados`;
+  const contenedor = el(municipio, 'docentes');
+  if (visibles.length === 0) {
+    contenedor.innerHTML = bloqueVacio('Sin resultados', 'Ningún docente coincide con la búsqueda o el filtro.');
+    return;
+  }
+
+  contenedor.innerHTML = `<table class="apilable">
+    <thead><tr><th>Docente</th><th>Avance</th><th>Estado</th><th class="der"><span class="sr-only">Acciones</span></th></tr></thead>
+    <tbody>${visibles.map(a => `
+      <tr class="${estadoUI.docenteHistorial === a.docente ? 'activo' : ''}">
+        <td class="principal"><div><div class="nombre">${escaparHTML(a.docente)}</div>
+          ${huerfanos.includes(a.docente) ? '<div class="nombre-extra">Fuera de la lista configurada</div>' : ''}</div></td>
+        <td data-label="Avance">${bloqueAvance(a.minutosComputables, a.objetivo)}</td>
+        <td data-label="Estado">${etiquetaEstado(a.estado === 'aprobado', a.minutosFaltantes, a.estado === 'sin-registros')}</td>
+        <td data-label="Acciones"><div class="acciones">
+          <button type="button" class="btn btn-icono" data-accion="ver" data-docente="${escaparHTML(a.docente)}" title="Ver historial" aria-label="Ver historial de ${escaparHTML(a.docente)}">${ICONOS.historial}</button>
+          <button type="button" class="btn btn-texto" data-accion="registrar" data-docente="${escaparHTML(a.docente)}">+ Registrar</button>
+        </div></td>
+      </tr>`).join('')}
+    </tbody></table>`;
+}
+
+function verHistorialDocente(municipio, docente) {
+  ui.municipio[municipio].docenteHistorial = docente;
+  el(municipio, 'historial-docente').value = docente;
+  renderTablaDocentes(municipio);
+  renderHistorial(municipio);
+  el(municipio, 'historial-tarjeta').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function renderHistorial(municipio) {
+  const estadoUI = ui.municipio[municipio];
+  const docenteSel = estadoUI.docenteHistorial;
+  const requerido = minutosRequeridosPorSesion();
+  const docentes = docenteSel ? [docenteSel] : obtenerDocentes(municipio).todos;
+  const resumenEl = el(municipio, 'historial-resumen');
+  const contenedor = el(municipio, 'historial');
+
+  // Reunir registros con sus cálculos acumulados
+  const filas = [];
+  let analisisSel = null;
+  docentes.forEach(d => {
+    const a = analizarDocente(municipio, d);
+    if (docenteSel) analisisSel = a;
+    a.registros.forEach(r => filas.push({ r, det: a.detallePorRegistro.get(r.id) }));
+  });
+  filas.sort((x, y) => compararCronologico(y.r, x.r)); // más recientes primero
+
+  // Resumen por sesión del docente seleccionado
+  resumenEl.innerHTML = analisisSel && analisisSel.sesiones.length
+    ? `<div class="sesiones">${analisisSel.sesiones.map(s => `
+        <div class="sesion">
+          <div class="sesion-cabeza"><b>${escaparHTML(s.nombre)}</b>${etiquetaEstado(s.aprobada, s.faltante)}</div>
+          ${bloqueAvance(s.acumulado, requerido)}
+        </div>`).join('')}</div>`
+    : '';
+
+  if (filas.length === 0 && cargandoInicial) {
+    contenedor.innerHTML = bloqueVacio('Cargando registros…', 'Consultando la base de datos.');
+    return;
+  }
+  if (filas.length === 0) {
+    contenedor.innerHTML = bloqueVacio('No hay registros',
+      docenteSel ? `Aún no hay sesiones registradas para ${escaparHTML(docenteSel)}.` : 'Aún no hay sesiones registradas en este municipio.');
+    return;
+  }
+
+  contenedor.innerHTML = `<table class="apilable">
+    <thead><tr>
+      <th>Fecha</th>${docenteSel ? '' : '<th>Docente</th>'}<th>Sesión</th>
+      <th class="der">Duración</th><th class="der">Acumulado</th><th>Estado</th><th class="der"><span class="sr-only">Acciones</span></th>
+    </tr></thead>
+    <tbody>${filas.map(({ r, det }) => `
+      <tr class="${r.id === estadoUI.editandoId ? 'activo' : ''}">
+        <td data-label="Fecha" class="nowrap">${formatearFecha(r.fecha)}</td>
+        ${docenteSel ? '' : `<td data-label="Docente" class="nombre">${escaparHTML(r.docente)}</td>`}
+        <td data-label="Sesión"><div>${escaparHTML(r.sesion)}${r.observaciones ? `<div class="obs">${escaparHTML(r.observaciones)}</div>` : ''}</div></td>
+        <td data-label="Duración" class="der dur">${formatearDuracion(r.minutos)}</td>
+        <td data-label="Acumulado" class="der dur"><span><b>${formatearDuracion(det.acumuladoSesion)}</b> <span class="dur-req">/ ${formatearDuracion(requerido)}</span></span></td>
+        <td data-label="Estado">${etiquetaEstado(det.aprobadoTrasRegistro, det.faltanteSesion)}</td>
+        <td data-label="Acciones"><div class="acciones">
+          <button type="button" class="btn btn-icono" data-accion="editar" data-id="${escaparHTML(r.id)}" title="Editar" aria-label="Editar registro">${ICONOS.editar}</button>
+          <button type="button" class="btn btn-icono borrar" data-accion="eliminar" data-id="${escaparHTML(r.id)}" title="Eliminar" aria-label="Eliminar registro">${ICONOS.eliminar}</button>
+        </div></td>
+      </tr>`).join('')}
+    </tbody></table>`;
+}
+
+/** Actualiza todos los indicadores, tablas y formularios tras cualquier operación. */
+function renderTodo() {
+  renderIndicadoresGlobales();
+  Object.keys(MUNICIPIOS).forEach(municipio => {
+    poblarSelectDocentes(municipio);
+    renderTablaDocentes(municipio);
+    renderHistorial(municipio);
+    actualizarSugerenciasSesion(municipio);
+    renderCalculo(municipio);
+  });
+}
+
+/* =====================================================================
+   10. EXPORTACIÓN E IMPORTACIÓN
+   ===================================================================== */
+
+function descargarArchivo(contenido, nombre, tipo) {
+  const blob = new Blob([contenido], { type: tipo });
+  const url = URL.createObjectURL(blob);
+  const enlace = document.createElement('a');
+  enlace.href = url;
+  enlace.download = nombre;
+  document.body.appendChild(enlace);
+  enlace.click();
+  enlace.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+/** Celda CSV segura: comillas escapadas y protección contra fórmulas en Excel. */
+function celdaCSV(valor) {
+  let texto = String(valor ?? '');
+  if (/^[=+\-@\t\r]/.test(texto)) texto = "'" + texto;
+  return /[";\n\r]/.test(texto) ? `"${texto.replace(/"/g, '""')}"` : texto;
+}
+
+/** Arma un CSV con separador ";" y BOM UTF-8 para que Excel en español muestre bien tildes y columnas. */
+function construirCSV(encabezados, filas) {
+  return '﻿' + [encabezados, ...filas].map(fila => fila.map(celdaCSV).join(';')).join('\r\n');
+}
+
+function marcaDeTiempoArchivo() {
+  return fechaHoy() + '_' + new Date().toTimeString().slice(0, 5).replace(':', '');
+}
+
+function exportarCSVRegistros() {
+  const requerido = minutosRequeridosPorSesion();
+  const filas = [];
+  Object.entries(MUNICIPIOS).forEach(([clave, m]) => {
+    obtenerDocentes(clave).todos.forEach(docente => {
+      const a = analizarDocente(clave, docente);
+      a.registros.slice().sort(compararCronologico).forEach(r => {
+        const det = a.detallePorRegistro.get(r.id);
+        filas.push([m.nombre, docente, r.sesion, formatearFecha(r.fecha), r.minutos, formatearDuracion(r.minutos),
+          det.acumuladoSesion, formatearDuracion(det.acumuladoSesion), formatearDuracion(det.faltanteSesion),
+          det.aprobadoTrasRegistro ? 'APROBADO' : `Faltan ${formatearDuracion(det.faltanteSesion)}`,
+          det.sesionAprobada ? 'APROBADO' : 'PENDIENTE', formatearDuracion(requerido), r.observaciones, r.id]);
+      });
+    });
+  });
+  if (filas.length === 0) { mostrarToast('No hay registros para exportar.', 'advertencia'); return; }
+  const csv = construirCSV(['Municipio', 'Docente', 'Sesión', 'Fecha', 'Duración sesión (min)', 'Duración sesión',
+    'Acumulado sesión (min)', 'Acumulado sesión', 'Faltante', 'Estado tras el registro', 'Estado actual de la sesión',
+    'Requisito por sesión', 'Observaciones', 'ID'], filas);
+  descargarArchivo(csv, `sesiones_docentes_RSF_${marcaDeTiempoArchivo()}.csv`, 'text/csv;charset=utf-8');
+  mostrarToast(`CSV exportado con ${plural(filas.length, 'registro', 'registros')}.`, 'exito');
+}
+
+function exportarCSVResumen() {
+  const filas = [];
+  Object.entries(MUNICIPIOS).forEach(([clave, m]) => {
+    obtenerDocentes(clave).todos.forEach(docente => {
+      const a = analizarDocente(clave, docente);
+      const estado = a.estado === 'aprobado' ? 'APROBADO' : a.estado === 'sin-registros' ? 'SIN REGISTROS' : 'PENDIENTE';
+      filas.push([m.nombre, docente, a.registros.length, a.sesiones.length, a.aprobadas, a.minutosTotales,
+        formatearDuracion(a.minutosTotales), formatearDuracion(a.minutosFaltantes), Math.round(a.porcentaje) + '%', estado]);
+    });
+  });
+  const csv = construirCSV(['Municipio', 'Docente', 'Registros', 'Sesiones registradas', 'Sesiones aprobadas',
+    'Horas acumuladas (min)', 'Horas acumuladas', 'Faltante para el requisito', 'Avance', 'Estado'], filas);
+  descargarArchivo(csv, `resumen_docentes_RSF_${marcaDeTiempoArchivo()}.csv`, 'text/csv;charset=utf-8');
+  mostrarToast('Resumen por docente exportado.', 'exito');
+}
+
+function exportarJSON() {
+  const total = Object.values(datos).reduce((s, l) => s + l.length, 0);
+  const copia = {
+    app: 'robotica-sin-fronteras-seguimiento',
+    version: VERSION_DATOS,
+    exportadoEn: new Date().toISOString(),
+    configuracion: { HORAS_POR_SESION, SESIONES_REQUERIDAS_POR_DOCENTE },
+    municipios: Object.fromEntries(Object.entries(MUNICIPIOS).map(([c, m]) => [c, m.nombre])),
+    totalRegistros: total,
+    datos
+  };
+  descargarArchivo(JSON.stringify(copia, null, 2), `copia_seguridad_RSF_${marcaDeTiempoArchivo()}.json`, 'application/json');
+  mostrarToast(`Copia de seguridad descargada (${plural(total, 'registro', 'registros')}).`, 'exito');
+}
+
+async function importarJSON(archivo) {
+  if (!archivo) return;
+  let copia;
+  try {
+    copia = normalizarCopia(JSON.parse(await archivo.text()));
+  } catch (error) {
+    mostrarToast('El archivo no es un JSON válido.', 'error');
+    return;
+  }
+  if (!copia) {
+    mostrarToast('El archivo no tiene el formato de copia de seguridad de esta aplicación.', 'error');
+    return;
+  }
+  const entrantes = Object.values(copia.datos).reduce((s, l) => s + l.length, 0);
+  const actuales = Object.values(datos).reduce((s, l) => s + l.length, 0);
+  const detalle = Object.entries(MUNICIPIOS).map(([c, m]) => `${m.nombre}: ${copia.datos[c].length}`).join(' · ');
+
+  const opcion = await abrirModal({
+    titulo: 'Importar copia de seguridad',
+    mensaje: `El archivo contiene ${plural(entrantes, 'registro válido', 'registros válidos')} (${detalle}).` +
+      (copia.descartados ? `\nSe omitirán ${copia.descartados} registro(s) inválidos o repetidos.` : '') +
+      `\nEn la base de datos hay ${plural(actuales, 'registro', 'registros')}.\n\nCombinar: agrega los nuevos y conserva los actuales.\nReemplazar: BORRA todos los registros de la base de datos (para todos los equipos) y deja solo los del archivo.`,
+    botones: [
+      { texto: 'Cancelar', valor: null },
+      { texto: 'Reemplazar', valor: 'reemplazar', clase: 'btn-peligro' },
+      { texto: 'Combinar', valor: 'combinar', clase: 'btn-principal' }
+    ]
+  });
+  if (!opcion || operacionEnCurso) return;
+  if (opcion === 'reemplazar' && actuales > 0) {
+    const seguro = await confirmar('¿Reemplazar toda la base de datos?',
+      `Se borrarán los ${actuales} registros actuales para todos los equipos. Se recomienda descargar antes una copia de seguridad.`,
+      'Sí, reemplazar', 'btn-peligro');
+    if (!seguro) return;
+  }
+
+  const filasEntrantes = datosAFilas(copia.datos);
+  marcarOperacion(true);
+  mostrarToast('Importando registros…');
+  try {
+    if (opcion === 'reemplazar') {
+      // Se conserva lo actual en memoria para restaurarlo si la carga falla a mitad de camino
+      const respaldo = datosAFilas(datos);
+      await baseDatos.eliminarTodos();
+      try {
+        for (const lote of enLotes(filasEntrantes)) await baseDatos.insertar(lote);
+      } catch (error) {
+        for (const lote of enLotes(respaldo)) await baseDatos.insertarOmitiendoExistentes(lote).catch(() => {});
+        throw error;
+      }
+      mostrarToast(`Base de datos reemplazada: ${plural(entrantes, 'registro importado', 'registros importados')}.`, 'exito');
+    } else {
+      let agregados = 0;
+      for (const lote of enLotes(filasEntrantes)) agregados += (await baseDatos.insertarOmitiendoExistentes(lote)).length;
+      mostrarToast(`Importación completada: ${agregados} agregado(s), ${entrantes - agregados} ya existían.`, 'exito');
+    }
+  } catch (error) {
+    mostrarToast(`La importación no se completó: ${error.message}`, 'error');
+  } finally {
+    marcarOperacion(false);
+  }
+  Object.keys(MUNICIPIOS).forEach(c => restablecerFormulario(c));
+  await sincronizarDesdeBaseDatos();
+}
+
+/* =====================================================================
+   11. INICIALIZACIÓN
+   ===================================================================== */
+
+async function iniciar() {
+  // 1) Se muestra al instante la última copia local; 2) se descarga lo actual de la base de datos
+  const hayCopiaLocal = cargarCopiaLocal();
+  if (hayCopiaLocal) cargandoInicial = false;
+  construirPestanas();
+  Object.keys(MUNICIPIOS).forEach(construirPanel);
+
+  let pestana = ui.pestanaActiva;
+  try { const guardada = localStorage.getItem(PESTANA_KEY); if (guardada && MUNICIPIOS[guardada]) pestana = guardada; } catch (e) { /* opcional */ }
+  activarPestana(pestana);
+
+  // Menú «Datos»: cada opción cierra el menú al ejecutarse
+  const menu = document.getElementById('menu-datos');
+  const accionMenu = (id, fn) => document.getElementById(id).addEventListener('click', () => { menu.open = false; fn(); });
+  accionMenu('btn-csv', exportarCSVRegistros);
+  accionMenu('btn-csv-resumen', exportarCSVResumen);
+  accionMenu('btn-json', exportarJSON);
+  const inputImportar = document.getElementById('input-importar');
+  accionMenu('btn-importar', () => inputImportar.click());
+  inputImportar.addEventListener('change', async () => {
+    await importarJSON(inputImportar.files[0]);
+    inputImportar.value = '';
+  });
+  document.addEventListener('click', e => { if (menu.open && !menu.contains(e.target)) menu.open = false; });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && menu.open) menu.open = false; });
+
+  // Indicador de conexión: clic para recargar desde la base de datos
+  document.getElementById('conexion').addEventListener('click', () => sincronizarDesdeBaseDatos({ silencioso: false }));
+
+  // Trae los cambios hechos desde otros equipos: al volver a la página y cada cierto tiempo,
+  // sin interrumpir a quien esté diligenciando el formulario
+  const hayFormularioAbierto = () => Object.keys(MUNICIPIOS).some(c => !el(c, 'modal').hidden);
+  const actualizarAutomaticamente = () => {
+    if (document.visibilityState === 'visible' && !hayFormularioAbierto()) sincronizarDesdeBaseDatos();
+  };
+  document.addEventListener('visibilitychange', actualizarAutomaticamente);
+  setInterval(actualizarAutomaticamente, INTERVALO_ACTUALIZACION_MS);
+
+  actualizarIndicadorConexion();
+  renderTodo();
+  if (await sincronizarDesdeBaseDatos()) await ofrecerMigracionLocal();
+}
+
+document.addEventListener('DOMContentLoaded', iniciar);
+</script>
+</body>
+</html>
