@@ -8,6 +8,7 @@ create table if not exists public.sesiones_docentes (
   id              uuid primary key default gen_random_uuid(),
   municipio       text not null check (municipio in ('istmina', 'belen')),
   docente         text not null check (length(trim(docente)) > 0),
+  responsable     text not null default '',
   sesion          text not null check (length(trim(sesion)) > 0),
   fecha           date not null,
   minutos         integer not null check (minutos between 0 and 1440),
@@ -15,6 +16,9 @@ create table if not exists public.sesiones_docentes (
   creado_en       timestamptz not null default now(),
   actualizado_en  timestamptz not null default now()
 );
+
+-- Docente responsable de la sesión (agregado después; seguro de ejecutar en tablas existentes)
+alter table public.sesiones_docentes add column if not exists responsable text not null default '';
 
 create index if not exists sesiones_docentes_municipio_docente_idx
   on public.sesiones_docentes (municipio, docente);

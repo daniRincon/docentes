@@ -420,20 +420,26 @@ footer { text-align: center; color: var(--texto-suave); font-size: 12.5px; paddi
    ===================================================================== */
 
 /** Horas requeridas para dar por cumplida (APROBADA) una sesión. Admite decimales (p. ej. 2.5). */
-const HORAS_POR_SESION = 3;
+const HORAS_POR_SESION = 4;
 
 /** Número de sesiones aprobadas que debe completar cada docente para considerar cumplido su proceso. */
 const SESIONES_REQUERIDAS_POR_DOCENTE = 1;
 
 /**
- * Lista configurable de municipios y docentes.
- * Para incorporar un docente basta con agregar su nombre al arreglo del municipio correspondiente.
+ * Lista configurable de municipios, docentes responsables y docentes participantes.
+ * Para incorporar un docente o un responsable basta con agregar su nombre al arreglo del municipio correspondiente.
  * La clave (istmina / belen) identifica al municipio en los registros guardados: no la cambie
  * si ya existen datos almacenados.
  */
 const MUNICIPIOS = {
   istmina: {
     nombre: 'Istmina',
+    // Docentes responsables que dirigen las sesiones en este municipio
+    responsables: [
+      'Jaider Yesid Moreno Mena',
+      'Luis Enrique Rentería Murillo',
+      'Jhomar Albeiro Ferro Beltrán'
+    ],
     docentes: [
       'Jorge Luis Renteria Murillo',
       'Gladis Elena Marín Aguilar',
@@ -461,6 +467,10 @@ const MUNICIPIOS = {
   },
   belen: {
     nombre: 'Belén de Bajirá',
+    responsables: [
+      'Jhomar Albeiro Ferro Beltrán',
+      'Clark Martínez'
+    ],
     docentes: [
       'Yennier Adolfo Ríos Mosquera',
       'Wilbert Hernán Cossío Hinestroza',
@@ -519,7 +529,7 @@ const ui = {
   municipio: {}
 };
 Object.keys(MUNICIPIOS).forEach(clave => {
-  ui.municipio[clave] = { editandoId: null, docenteHistorial: '', busqueda: '', filtroEstado: 'todos' };
+  ui.municipio[clave] = { editandoId: null, docenteHistorial: '', busqueda: '', filtroEstado: 'todos', ultimoResponsable: '' };
 });
 
 function crearDatosVacios() {
@@ -673,6 +683,7 @@ function filaARegistro(fila) {
     sesion: fila.sesion,
     fecha: fila.fecha,
     minutos: Number(fila.minutos),
+    responsable: fila.responsable || '',
     observaciones: fila.observaciones || '',
     creadoEn: fila.creado_en,
     actualizadoEn: fila.actualizado_en
@@ -688,6 +699,7 @@ function registroAFila(municipio, registro) {
     sesion: registro.sesion,
     fecha: registro.fecha,
     minutos: registro.minutos,
+    responsable: registro.responsable || '',
     observaciones: registro.observaciones || ''
   };
   if (registro.creadoEn) fila.creado_en = registro.creadoEn;
@@ -871,6 +883,7 @@ function sanearRegistro(registro) {
     sesion,
     fecha,
     minutos,
+    responsable: String(registro.responsable || '').trim(),
     observaciones: String(registro.observaciones || '').trim(),
     creadoEn: String(registro.creadoEn || ahora),
     actualizadoEn: String(registro.actualizadoEn || registro.creadoEn || ahora)
@@ -1176,6 +1189,14 @@ function construirPanel(municipio) {
         <div class="aviso-edicion"><span id="${p}-edit-texto">Editando registro</span></div>
 
         <div class="campo">
+          <label for="${p}-responsable">Docente responsable</label>
+          <select class="input" id="${p}-responsable" required>
+            <option value="">Seleccione el responsable</option>
+            ${m.responsables.map(r => `<option value="${escaparHTML(r)}">${escaparHTML(r)}</option>`).join('')}
+          </select>
+          <div class="error" id="${p}-responsable-error"></div>
+        </div>
+        <div class="campo">
           <label for="${p}-docente">Docente</label>
           <select class="input" id="${p}-docente" required></select>
           <div class="error" id="${p}-docente-error"></div>
@@ -1272,7 +1293,7 @@ function conectarEventosPanel(municipio) {
   });
 
   // Cálculo en vivo mientras se diligencia el formulario
-  ['docente', 'sesion', 'fecha', 'horas', 'minutos'].forEach(campo => {
+  ['responsable', 'docente', 'sesion', 'fecha', 'horas', 'minutos'].forEach(campo => {
     el(municipio, campo).addEventListener('input', () => {
       el(municipio, campo).classList.remove('invalido');
       el(municipio, (campo === 'horas' || campo === 'minutos') ? 'duracion-error' : `${campo}-error`).textContent = '';
@@ -1376,13 +1397,17 @@ function mostrarModalFormulario(municipio, campoInicial) {
 /** Abre el formulario vacío para registrar una sesión nueva (opcionalmente con un docente ya elegido). */
 function abrirFormulario(municipio, docente = '') {
   restablecerFormulario(municipio);
+  // Se propone el último responsable usado en este municipio (suele registrar varias sesiones seguidas)
+  const ultimo = ui.municipio[municipio].ultimoResponsable;
+  if (ultimo && MUNICIPIOS[municipio].responsables.includes(ultimo)) el(municipio, 'responsable').value = ultimo;
   if (docente) {
     el(municipio, 'docente').value = docente;
     actualizarSugerenciasSesion(municipio);
     sugerirSiguienteSesion(municipio, docente);
     renderCalculo(municipio);
   }
-  mostrarModalFormulario(municipio, docente ? 'horas' : 'docente');
+  const campoInicial = !el(municipio, 'responsable').value ? 'responsable' : (docente ? 'horas' : 'docente');
+  mostrarModalFormulario(municipio, campoInicial);
 }
 
 /** Cierra el formulario y descarta lo que no se haya guardado. */
@@ -1401,6 +1426,7 @@ function prepararRegistro(municipio, docente) {
 
 function leerFormulario(municipio) {
   return {
+    responsable: el(municipio, 'responsable').value.trim(),
     docente: el(municipio, 'docente').value.trim(),
     sesion: el(municipio, 'sesion').value.trim().replace(/\s+/g, ' '),
     fecha: el(municipio, 'fecha').value,
@@ -1414,6 +1440,9 @@ function leerFormulario(municipio) {
 function validarFormulario(municipio, valores) {
   const errores = {};
   const { todos } = obtenerDocentes(municipio);
+  if (!valores.responsable) errores.responsable = 'Seleccione el docente responsable.';
+  else if (!MUNICIPIOS[municipio].responsables.includes(valores.responsable)) errores.responsable = 'El responsable no pertenece a este municipio.';
+
   if (!valores.docente) errores.docente = 'Seleccione el docente.';
   else if (!todos.includes(valores.docente)) errores.docente = 'El docente no pertenece a este municipio.';
 
@@ -1440,7 +1469,7 @@ function validarFormulario(municipio, valores) {
 }
 
 function mostrarErrores(municipio, errores, enfocar = true) {
-  const campos = { docente: ['docente'], sesion: ['sesion'], fecha: ['fecha'], duracion: ['horas', 'minutos'] };
+  const campos = { responsable: ['responsable'], docente: ['docente'], sesion: ['sesion'], fecha: ['fecha'], duracion: ['horas', 'minutos'] };
   Object.entries(campos).forEach(([clave, ids]) => {
     el(municipio, `${clave}-error`).textContent = errores[clave] || '';
     ids.forEach(id => el(municipio, id).classList.toggle('invalido', Boolean(errores[clave])));
@@ -1482,7 +1511,8 @@ async function guardarRegistro(municipio) {
   if (operacionEnCurso) return;
   const textoBoton = el(municipio, 'guardar').textContent;
   marcarOperacion(true, municipio, 'Guardando…');
-  const campos = { docente: valores.docente, sesion: valores.sesion, fecha: valores.fecha, minutos, observaciones: valores.observaciones };
+  const campos = { docente: valores.docente, responsable: valores.responsable, sesion: valores.sesion, fecha: valores.fecha,
+    minutos, observaciones: valores.observaciones };
   try {
     if (editandoId) {
       // EDICIÓN: se actualiza el mismo registro (mismo id) en la base de datos, por lo que sus horas no se duplican
@@ -1509,6 +1539,7 @@ async function guardarRegistro(municipio) {
     return;
   }
   marcarOperacion(false, municipio, textoBoton);
+  ui.municipio[municipio].ultimoResponsable = valores.responsable;
   guardarCopiaLocal();
   actualizarIndicadorConexion();
 
@@ -1527,6 +1558,7 @@ function iniciarEdicion(municipio, id) {
   if (!registro) { mostrarToast('No se encontró el registro.', 'error'); return; }
   ui.municipio[municipio].editandoId = id;
   poblarSelectDocentes(municipio);
+  el(municipio, 'responsable').value = registro.responsable || ''; // registros antiguos sin responsable: se debe elegir uno
   el(municipio, 'docente').value = registro.docente;
   el(municipio, 'sesion').value = registro.sesion;
   el(municipio, 'fecha').value = registro.fecha;
@@ -1714,7 +1746,9 @@ function renderHistorial(municipio) {
       <tr class="${r.id === estadoUI.editandoId ? 'activo' : ''}">
         <td data-label="Fecha" class="nowrap">${formatearFecha(r.fecha)}</td>
         ${docenteSel ? '' : `<td data-label="Docente" class="nombre">${escaparHTML(r.docente)}</td>`}
-        <td data-label="Sesión"><div>${escaparHTML(r.sesion)}${r.observaciones ? `<div class="obs">${escaparHTML(r.observaciones)}</div>` : ''}</div></td>
+        <td data-label="Sesión"><div>${escaparHTML(r.sesion)}
+          <div class="obs">Responsable: ${r.responsable ? escaparHTML(r.responsable) : 'sin asignar'}</div>
+          ${r.observaciones ? `<div class="obs">${escaparHTML(r.observaciones)}</div>` : ''}</div></td>
         <td data-label="Duración" class="der dur">${formatearDuracion(r.minutos)}</td>
         <td data-label="Acumulado" class="der dur"><span><b>${formatearDuracion(det.acumuladoSesion)}</b> <span class="dur-req">/ ${formatearDuracion(requerido)}</span></span></td>
         <td data-label="Estado">${etiquetaEstado(det.aprobadoTrasRegistro, det.faltanteSesion)}</td>
@@ -1778,7 +1812,7 @@ function exportarCSVRegistros() {
       const a = analizarDocente(clave, docente);
       a.registros.slice().sort(compararCronologico).forEach(r => {
         const det = a.detallePorRegistro.get(r.id);
-        filas.push([m.nombre, docente, r.sesion, formatearFecha(r.fecha), r.minutos, formatearDuracion(r.minutos),
+        filas.push([m.nombre, docente, r.responsable, r.sesion, formatearFecha(r.fecha), r.minutos, formatearDuracion(r.minutos),
           det.acumuladoSesion, formatearDuracion(det.acumuladoSesion), formatearDuracion(det.faltanteSesion),
           det.aprobadoTrasRegistro ? 'APROBADO' : `Faltan ${formatearDuracion(det.faltanteSesion)}`,
           det.sesionAprobada ? 'APROBADO' : 'PENDIENTE', formatearDuracion(requerido), r.observaciones, r.id]);
@@ -1786,7 +1820,7 @@ function exportarCSVRegistros() {
     });
   });
   if (filas.length === 0) { mostrarToast('No hay registros para exportar.', 'advertencia'); return; }
-  const csv = construirCSV(['Municipio', 'Docente', 'Sesión', 'Fecha', 'Duración sesión (min)', 'Duración sesión',
+  const csv = construirCSV(['Municipio', 'Docente', 'Docente responsable', 'Sesión', 'Fecha', 'Duración sesión (min)', 'Duración sesión',
     'Acumulado sesión (min)', 'Acumulado sesión', 'Faltante', 'Estado tras el registro', 'Estado actual de la sesión',
     'Requisito por sesión', 'Observaciones', 'ID'], filas);
   descargarArchivo(csv, `sesiones_docentes_RSF_${marcaDeTiempoArchivo()}.csv`, 'text/csv;charset=utf-8');
