@@ -1189,7 +1189,7 @@ function construirPanel(municipio) {
         <div class="aviso-edicion"><span id="${p}-edit-texto">Editando registro</span></div>
 
         <div class="campo">
-          <label for="${p}-responsable">Docente responsable</label>
+          <label for="${p}-responsable">Formador responsable</label>
           <select class="input" id="${p}-responsable" required>
             <option value="">Seleccione el responsable</option>
             ${m.responsables.map(r => `<option value="${escaparHTML(r)}">${escaparHTML(r)}</option>`).join('')}
