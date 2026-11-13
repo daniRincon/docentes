@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="360" viewBox="0 0 480 360">
+<rect width="480" height="360" fill="#fff6e0"/>
+<rect x="20" y="70" width="200" height="220" rx="18" fill="#dff1ff" stroke="#4a90d9" stroke-width="4"/>
+<rect x="260" y="70" width="200" height="220" rx="18" fill="#ffe1e1" stroke="#d94a4a" stroke-width="4"/>
+<text x="120" y="110" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="bold" fill="#2b5f99" text-anchor="middle">TÚ</text>
+<text x="360" y="110" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="bold" fill="#992b2b" text-anchor="middle">COMPU</text>
+<text x="240" y="190" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="bold" fill="#555" text-anchor="middle">VS</text>
+<text x="240" y="52" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#777" text-anchor="middle">Sin cámara: teclas 1 piedra, 2 papel, 3 tijera</text>
+</svg>

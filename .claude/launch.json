@@ -1,0 +1,6 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    { "name": "edudata-next", "runtimeExecutable": "npm", "runtimeArgs": ["--prefix", "edudata-quibdo-next", "run", "start", "--", "-p", "3010"], "port": 3010 }
+  ]
+}
